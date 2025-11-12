@@ -7,6 +7,8 @@ import AdminTeachers from '@/pages/Admin/AdminTeachers';
 import AdminStudents from '@/pages/Admin/AdminStudents';
 import AdminCourses from '@/pages/Admin/AdminCourses';
 import { AdminDashboard } from '@/pages/Admin/AdminDashboard';
+import { AdminPlanCard } from '@/pages/Admin/Plans/AdminPlans';
+import AdminPlansPage from '@/pages/Admin/Plans/AdminPlansPage';
 // import { LoginPage } from '@/pages/Login';
 export const routes = (
   <>
@@ -32,7 +34,7 @@ export const routes = (
       <Route  path={ROUTES.STUDENTS} element={<AdminStudents/>}/>
       <Route  path={ROUTES.TEACHERS} element={<AdminTeachers/>}/>
       <Route  path={ROUTES.COURSES} element={<AdminCourses/>}/>
-      <Route  path={ROUTES.PLANS} element={<p>Plans</p>}/>
+      <Route  path={ROUTES.PLANS} element={<AdminPlansPage/>}/>
     </Route>
   </>
 );

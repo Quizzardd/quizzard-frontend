@@ -1,13 +1,10 @@
 import Navbar from "@/components/Navbar"
 import { AppSidebar } from "@/components/sidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { Book, BookOpen, Layout, LayoutDashboard, Settings, Users } from "lucide-react"
-import type { ReactNode } from "react"
+import { Book, BookOpen, Layout, LayoutDashboard, Users } from "lucide-react"
 import { Outlet } from "react-router"
 
-type LayoutProps = {
-  children: ReactNode
-}
+
 
 const sidebarItems = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard },

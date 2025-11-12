@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, Book, FileText, CreditCard, Activity } from "lucide-react";
+import { Users, Book, FileText, CreditCard } from "lucide-react";
 import {
   LineChart,
   Line,
