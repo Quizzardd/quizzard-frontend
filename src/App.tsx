@@ -1,14 +1,7 @@
-import { ModeToggle } from '@/components/ModeToggle';
-import AdminLayout from './layouts/AdminLayout';
-
+import { Routes } from 'react-router';
+import { routes } from '@/routers/AppRouter';
 const App = () => {
-  return (
-    <div>
-      <AdminLayout>
-        <></>
-      </AdminLayout>
-    </div>
-  );
+  return <Routes>{routes}</Routes>;
 };
 
 export default App;
