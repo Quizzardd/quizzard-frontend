@@ -1,13 +1,12 @@
 import type { IUser } from './users';
 import type { IPlan } from './plans';
-import { Types } from 'mongoose';
 
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
 
 export interface ISubscription {
-  _id: Types.ObjectId;
-  user: Types.ObjectId | IUser;
-  plan: Types.ObjectId | IPlan;
+  _id: string;
+  user: string | IUser;
+  plan: IPlan;
   status: SubscriptionStatus;
   startDate: Date;
   endDate: Date;
