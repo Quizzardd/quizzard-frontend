@@ -44,7 +44,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(62.793% 0.25768 29.223);
+  --background: oklch(100% 0.00011 271.152);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
@@ -79,7 +79,7 @@
 }
 
 .dark {
-  --background: oklch(0% 0 0);
+  --background: oklch(36.058% 0.01118 17.482);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858);
@@ -120,4 +120,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+html, body {
+  overflow: hidden;
 }
