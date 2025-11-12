@@ -1,6 +1,7 @@
 import type { IUser } from './users';
 import { Types } from 'mongoose';
 
+
 export interface IGroup {
   _id: Types.ObjectId;
   title: string;

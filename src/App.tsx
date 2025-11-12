@@ -1,18 +1,7 @@
-import { ModeToggle } from '@/components/ModeToggle';
-import SubscriptionPage from './pages/plans';
-
+import { Routes } from 'react-router';
+import { routes } from '@/routers/AppRouter';
 const App = () => {
-  
-
-  return (
-    <>
-      <div>
-        <ModeToggle />
-        <h1 className="text-highlight">Hello Omar</h1>
-      </div>
-      <SubscriptionPage/>
-    </>
-  );
+  return <Routes>{routes}</Routes>;
 };
 
 export default App;
