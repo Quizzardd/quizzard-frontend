@@ -1,10 +1,10 @@
-import { Types } from 'mongoose';
 
 export interface IPlan {
-  _id: Types.ObjectId;
+  _id: string;
   name: string;
   monthlyTokens: number;
   price?: number;
   description?: string;
   isActive: boolean;
+  features: string[];
 }

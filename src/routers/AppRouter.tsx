@@ -10,7 +10,6 @@ import { AdminDashboard } from '@/pages/Admin/AdminDashboard';
 // import { LoginPage } from '@/pages/Login';
 export const routes = (
   <>
-  
     {/* <Route path={ROUTES.LOGIN} element={<LoginPage />} /> */}
     <Route path={ROUTES.SIGNUP} element={<div>Signup Page</div>} />
     <Route element={<MainLayout />}>
