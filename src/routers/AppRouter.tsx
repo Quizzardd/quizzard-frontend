@@ -2,10 +2,10 @@ import MainLayout from '@/layouts/MainLayout';
 import { Route } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import Home from '@/pages/Home';
-import LoginPage from '@/pages/Login';
+// import LoginPage from '@/pages/Login';
 export const routes = (
   <>
-    <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+    {/* <Route path={ROUTES.LOGIN} element={<LoginPage />} /> */}
     <Route path={ROUTES.SIGNUP} element={<div>Signup Page</div>} />
     <Route element={<MainLayout />}>
       <Route path={ROUTES.HOME} element={<Home />} />
