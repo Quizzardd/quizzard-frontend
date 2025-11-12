@@ -32,7 +32,7 @@ export default function Navbar() {
             />
           </svg>
         </div>
-        <h1 className="text-lg font-semibold">AI Smart Classroom</h1>
+        <h1 className="text-lg font-semibold">QUIZZARD</h1>
       </div>
 
       {/* Middle Section: Search */}
@@ -73,7 +73,6 @@ export default function Navbar() {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Log out</DropdownMenuItem>
           </DropdownMenuContent>
