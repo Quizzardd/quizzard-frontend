@@ -10,7 +10,7 @@ interface AdminPlansGridProps {
 
 export function AdminPlansGrid({ plans, onDelete, onUpdate }: AdminPlansGridProps): JSX.Element {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+    <div className="container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 py-10">
       {plans.map((plan) => (
         <AdminPlanCard
           key={plan._id}
