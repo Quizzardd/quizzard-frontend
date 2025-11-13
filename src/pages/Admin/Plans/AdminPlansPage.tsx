@@ -1,10 +1,9 @@
-import type { IPlan, ISubscription } from '@/types';
-import CurrentPlan from './components/CurrentPlan';
-import SubscriptionPlans from './components/SubscriptionPlans';
-import AiInfo from './components/AiInfo';
+import { useState } from 'react';
+import type { IPlan } from '@/types';
+import { AdminPlansGrid } from './AdminPlansGridProps ';
 
-export default function SubscriptionPage() {
- const plans: IPlan[] = [
+export default function AdminPlansPage() {
+  const [plans, setPlans] = useState<IPlan[]>([
     {
       _id: '1',
       name: 'Free',
@@ -51,27 +50,15 @@ export default function SubscriptionPage() {
       ],
       isActive: false,
     },
-  ];
-  // 🧠 Static subscription for testing CurrentPlan
-  const subscription: ISubscription = {
-    _id: 'sub1' ,
-    user: 'user1' ,
-    plan: plans[1], // current plan is "Free"
-    status: 'active' ,
-    startDate: new Date('2025-01-01'),
-    endDate: new Date('2025-12-31'),
-    nextRenewal: new Date('2025-12-31'),
-    autoRenew: false,
-    tokensAllocated: 50,
-    tokensRemaining: 30,
-    lastTokenReset: new Date('2025-11-01'),
-    createdAt: new Date('2025-01-01'),
+  ]);
+
+  const handleDelete = (id: string) => {
+    setPlans((prev) => prev.filter((p) => p._id !== id));
   };
-  return (
-    <div className="container">
-      <CurrentPlan subscription={subscription}></CurrentPlan>
-      <SubscriptionPlans plans={plans}></SubscriptionPlans>
-      <AiInfo/>
-    </div>
-  );
+
+  const handleUpdate = (plan: IPlan) => {
+    console.log('Update plan:', plan);
+  };
+
+  return <AdminPlansGrid plans={plans} onDelete={handleDelete} onUpdate={handleUpdate} />;
 }
