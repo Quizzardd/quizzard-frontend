@@ -1,10 +1,10 @@
 import type { IGroup } from './groups';
-import { Types } from 'mongoose';
+
 
 export interface IModule {
-  _id: Types.ObjectId;
+  _id: string;
   title: string;
-  group: Types.ObjectId | IGroup;
+  group: string | IGroup;
   order?: number;
   createdAt: Date;
 }
