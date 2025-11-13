@@ -3,12 +3,13 @@ import { Route } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import Home from '@/pages/Home';
 import AdminLayout from '@/layouts/AdminLayout';
-import AdminTeachers from '@/pages/Admin/AdminTeachers';
-import AdminStudents from '@/pages/Admin/AdminStudents';
-import AdminCourses from '@/pages/Admin/AdminCourses';
+
 import { AdminDashboard } from '@/pages/Admin/AdminDashboard';
 import { AdminPlanCard } from '@/pages/Admin/Plans/AdminPlans';
 import AdminPlansPage from '@/pages/Admin/Plans/AdminPlansPage';
+import AdminTeachers from '@/pages/Admin/Teachers/AdminTeachers';
+import AdminStudents from '@/pages/Admin/Students/AdminStudents';
+import AdminCourses from '@/pages/Admin/Courses/AdminCourses';
 // import { LoginPage } from '@/pages/Login';
 export const routes = (
   <>

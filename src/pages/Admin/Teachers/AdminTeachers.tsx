@@ -1,4 +1,4 @@
-import { GenericTable } from './ViewTable'
+import { GenericTable } from "../ViewTable";
 
 export default function AdminTeachers() {
 

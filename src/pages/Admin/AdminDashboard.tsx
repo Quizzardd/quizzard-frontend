@@ -39,7 +39,7 @@ export function AdminDashboard({
     {
       title: "Courses",
       count: coursesCount,
-      icon: <FileText className="w-6 h-6 text-accent-foreground" />,
+      icon: <FileText className="w-6 h-6 text-secondary-foreground" />,
     },
     {
       title: "Active Subscriptions",
