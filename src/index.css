@@ -40,6 +40,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-highlight: var(--highlight);
+  --color-info-bg: var(--info-bg);
 }
 
 :root {
@@ -76,6 +77,16 @@
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
   --highlight: oklch(0.844 0.127 264.703);
+  --primary: #2563eb; /* Tailwind blue-600 */
+  --primary-foreground: #ffffff;
+  --accent: #9333ea; /* violet for Pro */
+  --accent-foreground: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --background: #f9fafb;
+  --foreground: #111827;
+  --muted-foreground: #6b7280;
+  --info-bg: oklch(0.97 0.02 240); /* soft bluish background */
 }
 
 .dark {
@@ -111,6 +122,14 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
   --highlight: oklch(95.97% 0.20757 108.586);
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --primary: #3b82f6;
+  --accent: #a855f7;
+  --muted-foreground: #94a3b8;
+  --info-bg: oklch(0.17 0.02 240); /* dark navy tone for dark mode */
 }
 
 @layer base {
@@ -120,4 +139,14 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+@layer utilities {
+    .container {
+        @apply mx-auto px-4 py-16 w-full
+        sm:max-w-[540px]
+        md:max-w-[720px]
+        lg:max-w-[960px]
+        xl:max-w-[1140px]
+        2xl:max-w-[1320px];
+    }
 }
