@@ -1,11 +1,11 @@
 import React from 'react';
 
 interface IMainLayout {
-  props?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-const MainLayout: React.FC<IMainLayout> = ({ props }) => {
-  return <div className="bg-white p-4"></div>;
+const MainLayout: React.FC<IMainLayout> = ({ children }) => {
+  return <div className="bg-white p-4">{children}</div>;
 };
 
 export default MainLayout;

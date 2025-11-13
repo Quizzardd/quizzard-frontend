@@ -1,10 +1,6 @@
 import React from 'react';
 
-interface IHome {
-  props?: React.ReactNode;
-}
-
-const Home: React.FC<IHome> = ({ props }) => {
+const Home: React.FC = () => {
   return <div className="bg-white p-4"></div>;
 };
 
