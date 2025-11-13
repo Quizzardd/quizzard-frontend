@@ -6,6 +6,7 @@ export const ROUTES = {
   QUIZZES: '/quizzes',
   PROFILE: '/profile',
   SETTINGS: '/settings',
+  SUBSCRIPTION : "/subscription",
   STUDENTS:'students',
   TEACHERS:'teachers',
   COURSES:'courses',

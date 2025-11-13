@@ -68,7 +68,7 @@ export default function SubscriptionPage() {
     createdAt: new Date('2025-01-01'),
   };
   return (
-    <div className="container">
+    <div className="">
       <CurrentPlan subscription={subscription}></CurrentPlan>
       <SubscriptionPlans plans={plans}></SubscriptionPlans>
       <AiInfo/>
