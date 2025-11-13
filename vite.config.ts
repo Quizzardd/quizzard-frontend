@@ -17,4 +17,5 @@ export default defineConfig({
       '@/pages': path.resolve(__dirname, './src/pages'),
     },
   },
+  base: process.env.NODE_ENV === 'production' ? '/quizzard-frontend' : '/',
 });
