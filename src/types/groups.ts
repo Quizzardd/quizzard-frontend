@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 
 
 export interface IGroup {
-  _id: Types.ObjectId;
+  _id: string;
   title: string;
   description?: string;
   coverUrl?: string;
