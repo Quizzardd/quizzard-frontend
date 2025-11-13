@@ -11,10 +11,11 @@ import AdminTeachers from '@/pages/Admin/Teachers/AdminTeachers';
 import AdminStudents from '@/pages/Admin/Students/AdminStudents';
 import AdminCourses from '@/pages/Admin/Courses/AdminCourses';
 // import { LoginPage } from '@/pages/Login';
+import { AuthLayout } from '@/layouts/AuthLayout';
 export const routes = (
   <>
-    {/* <Route path={ROUTES.LOGIN} element={<LoginPage />} /> */}
-    <Route path={ROUTES.SIGNUP} element={<div>Signup Page</div>} />
+    <Route path="/" element={<AuthLayout />} />
+
     <Route element={<MainLayout />}>
       <Route path={ROUTES.HOME} element={<Home />} />
       <Route path={ROUTES.QUIZZES}>

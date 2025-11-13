@@ -1,11 +1,12 @@
-import { Types } from 'mongoose';
-
 export interface IUser {
-  _id: Types.ObjectId;
-  name: string;
+  _id: string;
+  firstname: string;
+  lastname: string;
   email: string;
   photoURL?: string;
   role: 'user' | 'admin';
+  phone?: string;
+  location?: string;
   tokenBalance: number;
   createdAt: Date;
 }
