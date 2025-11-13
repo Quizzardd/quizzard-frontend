@@ -24,6 +24,9 @@ const AdminTeachers = lazy(() => import('@/pages/Admin/Teachers/AdminTeachers'))
 const AdminStudents = lazy(() => import('@/pages/Admin/Students/AdminStudents'));
 const AdminCourses = lazy(() => import('@/pages/Admin/Courses/AdminCourses'));
 
+// Lazy load error pages
+const NotFound = lazy(() => import('@/pages/NotFound'));
+
 export const routes = (
   <Route>
     {/* Public Route - Auth */}
@@ -70,6 +73,6 @@ export const routes = (
     </Route>
 
     {/* 404 Route */}
-    <Route path="*" element={<div>404 Not Found</div>} />
+    <Route path="*" element={<NotFound />} />
   </Route>
 );
