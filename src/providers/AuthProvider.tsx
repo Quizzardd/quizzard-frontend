@@ -1,0 +1,140 @@
+'use client';
+import { useReducer } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { authService } from '@/services/authService';
+import { AuthContext } from '@/contexts/AuthContext';
+import type { IUser } from '@/types';
+import type { IRegisterPayload } from '@/types/registerPayload';
+import { AUTH_ACTIONS } from '@/constants/authActions';
+
+type AuthState = {
+  token: string | null;
+  user: IUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+};
+
+const initialState: AuthState = {
+  token: localStorage.getItem('userToken') || null,
+  user: null,
+  isAuthenticated: !!localStorage.getItem('userToken'),
+  isLoading: false,
+  error: null,
+};
+
+type AuthAction =
+  | { type: 'LOGIN_START' }
+  | { type: 'LOGIN_SUCCESS'; payload: { token: string; user?: IUser } }
+  | { type: 'LOGIN_FAILURE'; payload: { error: string } }
+  | { type: 'LOGOUT' };
+
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+  switch (action.type) {
+    case AUTH_ACTIONS.LOGIN_START:
+      return { ...state, isLoading: true, error: null };
+    case AUTH_ACTIONS.LOGIN_SUCCESS:
+      return {
+        ...state,
+        token: action.payload.token,
+        user: action.payload.user ?? null,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+    case AUTH_ACTIONS.LOGIN_FAILURE:
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: action.payload.error,
+      };
+    case AUTH_ACTIONS.LOGOUT:
+      return { token: null, user: null, isAuthenticated: false, isLoading: false, error: null };
+    default:
+      return state;
+  }
+}
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+  const queryClient = useQueryClient();
+
+  // 🔄 React Query handles user fetching
+  const {
+    data: user,
+    isLoading: userLoading,
+    refetch: refetchUser,
+  } = useQuery({
+    queryKey: ['user'],
+    queryFn: authService.getProfile,
+    enabled: !!state.token, // only fetch if logged in
+    retry: false,
+  });
+
+  const login = async ({ email, password }: { email: string; password: string }) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      const token = await authService.login(email, password);
+      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
+
+      await refetchUser(); // get fresh user info
+      return { success: true };
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+      const message =
+        error instanceof Error
+          ? error.message
+          : axiosError?.response?.data?.message || 'Login failed';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: { error: message },
+      });
+      return { success: false, error: message };
+    }
+  };
+
+  // 🧾 Register
+  const register = async (data: IRegisterPayload) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      const res = await authService.register(data);
+      return { success: true, data: res };
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+      const message =
+        error instanceof Error
+          ? error.message
+          : axiosError?.response?.data?.message || 'Registration failed';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: { error: message },
+      });
+      return { success: false, error: message };
+    }
+  };
+
+  // 🚪 Logout
+  const logout = async () => {
+    await authService.logout();
+    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    queryClient.removeQueries({ queryKey: ['user'] });
+  };
+
+  const value = {
+    token: state.token,
+    user,
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading || userLoading,
+    error: state.error,
+    login,
+    logout,
+    register,
+    refetchUser,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export default AuthProvider;

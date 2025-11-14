@@ -4,7 +4,7 @@ import SubscriptionPlans from './components/SubscriptionPlans';
 import AiInfo from './components/AiInfo';
 
 export default function SubscriptionPage() {
-  const plans: IPlan[] = [
+ const plans: IPlan[] = [
     {
       _id: '1',
       name: 'Free',
@@ -68,7 +68,7 @@ export default function SubscriptionPage() {
     createdAt: new Date('2025-01-01'),
   };
   return (
-    <div className="container">
+    <div className="m-4">
       <CurrentPlan subscription={subscription}></CurrentPlan>
       <SubscriptionPlans plans={plans}></SubscriptionPlans>
       <AiInfo/>

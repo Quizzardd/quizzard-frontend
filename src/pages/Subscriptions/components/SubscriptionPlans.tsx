@@ -1,6 +1,6 @@
 import type { IPlan } from '@/types';
 import type { JSX } from 'react';
-import { PlanCard } from './planCard';
+import { PlanCard } from './PlanCard';
 
 interface SubscriptionPlansProps {
   plans: IPlan[];
