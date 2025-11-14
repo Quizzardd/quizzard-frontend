@@ -13,12 +13,13 @@ import { AuthLayout } from '@/layouts/AuthLayout';
 import Dashboard from '@/pages/DashBoard';
 import SubscriptionPage from '@/pages/Subscriptions';
 import ProfilePage from '@/pages/Profile';
+import Home from '@/pages/Home';
 export const routes = (
   <>
     <Route path={ROUTES.LOGIN} element={<AuthLayout />} />
 
     <Route path={ROUTES.HOME} element={<MainLayout />}>
-      <Route index element={<Dashboard />} />
+      <Route index element={<Home />} />
       <Route path={ROUTES.QUIZZES}>
         <Route index element={<div>Quizzes List</div>} />
         <Route path=":quizId" element={<div>Quiz Details</div>} />
