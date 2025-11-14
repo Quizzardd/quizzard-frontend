@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './providers/AuthProvider.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
-
+import { Toaster } from 'react-hot-toast';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,6 +29,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ThemeProvider>
           <BrowserRouter>
+            <Toaster />
             <App />
           </BrowserRouter>
         </ThemeProvider>

@@ -1,14 +1,21 @@
 export interface IUser {
   _id: string;
-  firstname: string;
-  lastname: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  photoURL?: string;
-  role: 'user' | 'admin';
+
   phone?: string;
-  location?: string;
-  tokenBalance: number;
-  createdAt: Date;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
+
+  role: 'user' | 'admin';
+  isActive: boolean;
+  isConfirmed: boolean;
+
+  photoURL?: string; // you'll add this eventually
+
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ILoginResponse {
