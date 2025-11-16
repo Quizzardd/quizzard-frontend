@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Name must be at least 2 characters long'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters long'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters long'),
   email: z.email('Invalid email address'),
   password: z
     .string()
@@ -25,9 +26,8 @@ const registerSchema = z.object({
     .refine((val) => !val || /^\+?[1-9]\d{1,14}$/.test(val), {
       message: 'Invalid phone number format',
     }),
-  age: z.coerce.number().min(13, 'You must be at least 13 years old'),
-  gender: z.enum(['male', 'female']),
-  photoURL: z.url('Invalid URL').optional().or(z.literal('')),
+  age: z.coerce.number().min(13, 'You must be at least 13 years old').optional(),
+  gender: z.enum(['male', 'female']).optional(),
 });
 
 type RegisterValues = z.infer<typeof registerSchema>;
@@ -42,20 +42,19 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema) as Resolver<RegisterValues>,
     defaultValues: {
-      fullName: '',
+      firstName: '',
+      lastName: '',
       email: '',
       password: '',
       phone: '',
       age: 13,
       gender: 'male',
-      photoURL: '',
     },
   });
 
   const onSubmit = async (values: RegisterValues) => {
     try {
-      console.log('🪄 Register values:', values);
-      await authRegister(values); // integrate with your useAuth service
+      await authRegister(values);
     } catch (err) {
       console.error(err);
     }
@@ -75,40 +74,63 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
           </p>
         </div>
 
-        {/* Full Name */}
-        <Field>
-          <FieldLabel htmlFor="fullName">Full Name</FieldLabel>
+        {/* <Field>
+          <FieldLabel htmlFor="fullName">
+            Full Name
+            <span className="text-red-500">*</span>
+          </FieldLabel>
           <Input id="fullName" placeholder="John Doe" {...register('fullName')} />
           {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
-        </Field>
+        </Field> */}
+        {/* add first name and last name at 1 row */}
+        <div className="flex gap-4">
+          <Field className="flex-1">
+            <FieldLabel htmlFor="firstName">
+              First Name<span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input id="firstName" placeholder="John" {...register('firstName')} />
+            {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+          </Field>
+          <Field className="flex-1">
+            <FieldLabel htmlFor="lastName">
+              Last Name<span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input id="lastName" placeholder="Doe" {...register('lastName')} />
+            {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
+          </Field>
+        </div>
 
-        {/* Email */}
-        <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder="m@example.com" {...register('email')} />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-        </Field>
+        <div className="flex gap-4">
+          <Field>
+            <FieldLabel htmlFor="email">
+              Email
+              <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input id="email" type="email" placeholder="m@example.com" {...register('email')} />
+            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="password">
+              Password
+              <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input id="password" type="password" placeholder="********" {...register('password')} />
+            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+          </Field>
+        </div>
+        <div className="flex gap-4">
+          <Field>
+            <FieldLabel htmlFor="phone">Phone</FieldLabel>
+            <Input id="phone" placeholder="+201234567890" {...register('phone')} />
+            {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+          </Field>
 
-        {/* Password */}
-        <Field>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input id="password" type="password" placeholder="********" {...register('password')} />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
-        </Field>
-
-        {/* Phone */}
-        <Field>
-          <FieldLabel htmlFor="phone">Phone</FieldLabel>
-          <Input id="phone" placeholder="+201234567890" {...register('phone')} />
-          {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
-        </Field>
-
-        {/* Age */}
-        <Field>
-          <FieldLabel htmlFor="age">Age</FieldLabel>
-          <Input id="age" type="number" min={13} {...register('age', { valueAsNumber: true })} />
-          {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
-        </Field>
+          <Field>
+            <FieldLabel htmlFor="age">Age</FieldLabel>
+            <Input id="age" type="number" min={13} {...register('age', { valueAsNumber: true })} />
+            {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
+          </Field>
+        </div>
 
         {/* Gender */}
         <Field>
@@ -125,15 +147,6 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
         </Field>
 
         {/* Photo URL */}
-        <Field>
-          <FieldLabel htmlFor="photoURL">Profile Photo URL</FieldLabel>
-          <Input
-            id="photoURL"
-            placeholder="https://example.com/photo.jpg"
-            {...register('photoURL')}
-          />
-          {errors.photoURL && <p className="text-red-500 text-sm">{errors.photoURL.message}</p>}
-        </Field>
 
         {/* Submit */}
         <Button type="submit" disabled={isSubmitting}>

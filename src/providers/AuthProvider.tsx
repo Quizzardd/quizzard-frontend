@@ -1,6 +1,5 @@
 'use client';
-import { useReducer } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useReducer, useEffect } from 'react';
 import { authService } from '@/services/authService';
 import { AuthContext } from '@/contexts/AuthContext';
 import type { IUser } from '@/types';
@@ -59,27 +58,44 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const queryClient = useQueryClient();
 
-  // 🔄 React Query handles user fetching
-  const {
-    data: user,
-    isLoading: userLoading,
-    refetch: refetchUser,
-  } = useQuery({
-    queryKey: ['user'],
-    queryFn: authService.getProfile,
-    enabled: !!state.token, // only fetch if logged in
-    retry: false,
-  });
+  // Load user on mount if token exists
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = localStorage.getItem('userToken');
+      if (token && !state.user) {
+        try {
+          const user = await fetchUser(token);
+          if (user) {
+            dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user } });
+          }
+        } catch (error) {
+          console.error('Failed to load user:', error);
+          // If token is invalid, clear it
+          localStorage.removeItem('userToken');
+          dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        }
+      }
+    };
+    loadUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchUser = async (token: string | null) => {
+    if (!token) return null;
+    const userData = await authService.getProfile(token);
+    return userData;
+  };
 
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       const token = await authService.login(email, password);
-      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
+      localStorage.setItem('userToken', token);
 
-      await refetchUser(); // get fresh user info
+      // Fetch user data after successful login
+      const user = await fetchUser(token);
+
+      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user } });
       return { success: true };
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
@@ -119,19 +135,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     await authService.logout();
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    queryClient.removeQueries({ queryKey: ['user'] });
+    localStorage.removeItem('userToken');
   };
 
   const value = {
     token: state.token,
-    user,
+    user: state.user,
     isAuthenticated: state.isAuthenticated,
-    isLoading: state.isLoading || userLoading,
+    isLoading: state.isLoading,
     error: state.error,
     login,
     logout,
     register,
-    refetchUser,
+    fetchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

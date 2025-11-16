@@ -1,5 +1,6 @@
 export interface IRegisterPayload {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   phone?: string;

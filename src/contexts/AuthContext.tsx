@@ -15,7 +15,7 @@ export type AuthContextType = {
   register: (
     registerPayload: IRegisterPayload,
   ) => Promise<{ success: boolean; error?: string; data?: unknown }>;
-  refetchUser: () => void;
+  fetchUser: (token: string) => void;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
