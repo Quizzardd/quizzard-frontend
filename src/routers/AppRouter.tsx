@@ -1,7 +1,8 @@
 import { lazy } from 'react';
-import { Route } from 'react-router';
+import { Route, Navigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/hooks/useAuth';
 
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
@@ -24,26 +25,25 @@ const AdminPlansPage = lazy(() => import('@/pages/Admin/Plans/AdminPlansPage'));
 const AdminTeachers = lazy(() => import('@/pages/Admin/Teachers/AdminTeachers'));
 const AdminStudents = lazy(() => import('@/pages/Admin/Students/AdminStudents'));
 const AdminCourses = lazy(() => import('@/pages/Admin/Courses/AdminCourses'));
+const GroupDetails = lazy(() => import('@/pages/GroupDetails'));
 
-// Lazy load error pages
 const NotFound = lazy(() => import('@/pages/NotFound'));
-// import MainLayout from '@/layouts/MainLayout';
-// import { AuthLayout } from '@/layouts/AuthLayout';
-// import Dashboard from '@/pages/DashBoard';
-// import SubscriptionPage from '@/pages/Subscriptions';
-// import ProfilePage from '@/pages/Profile';
-// import AdminLayout from '@/layouts/AdminLayout';
-// import { AdminDashboard } from '@/pages/Admin/AdminDashboard';
-// import AdminPlansPage from '@/pages/Admin/Plans/AdminPlansPage';
-// import AdminTeachers from '@/pages/Admin/Teachers/AdminTeachers';
-// import AdminStudents from '@/pages/Admin/Students/AdminStudents';
-// import AdminCourses from '@/pages/Admin/Courses/AdminCourses';
-// import NotFound from '@/pages/NotFound';
+
+// Component to handle authenticated redirect
+const HomeRoute = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Home />;
+};
 
 export const routes = (
   <Route>
-    {/* Public Landing Page */}
-    <Route path={ROUTES.HOME} element={<Home />} />
+    {/* Public Landing Page - Redirects to dashboard if authenticated */}
+    <Route path={ROUTES.HOME} element={<HomeRoute />} />
 
     {/* Auth Route */}
     <Route path={ROUTES.AUTH} element={<AuthLayout />} />
@@ -59,6 +59,7 @@ export const routes = (
         <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<div>Settings Page</div>} />
+        <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
       </Route>
     </Route>
 

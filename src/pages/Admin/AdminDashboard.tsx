@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Users, Book, FileText, CreditCard } from "lucide-react";
+import { Card, CardContent } from '@/components/ui/card';
+import { Users, Book, FileText, CreditCard } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-} from "recharts";
+} from 'recharts';
 
 type DashboardProps = {
   studentsCount: number;
@@ -27,22 +27,22 @@ export function AdminDashboard({
 }: DashboardProps) {
   const stats = [
     {
-      title: "Students",
+      title: 'Students',
       count: studentsCount,
       icon: <Users className="w-6 h-6 text-secondary-foreground" />,
     },
     {
-      title: "Teachers",
+      title: 'Teachers',
       count: teachersCount,
       icon: <Book className="w-6 h-6 text-secondary-foreground" />,
     },
     {
-      title: "Courses",
+      title: 'Courses',
       count: coursesCount,
       icon: <FileText className="w-6 h-6 text-secondary-foreground" />,
     },
     {
-      title: "Active Subscriptions",
+      title: 'Active Subscriptions',
       count: activeSubscriptions,
       icon: <CreditCard className="w-6 h-6 text-secondary-foreground" />,
     },
@@ -62,9 +62,7 @@ export function AdminDashboard({
                 <p className="text-muted-foreground text-sm">{stat.title}</p>
                 <p className="font-bold text-lg">{stat.count}</p>
               </div>
-              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-                {stat.icon}
-              </div>
+              <div className="p-2 rounded-lg bg-muted text-muted-foreground">{stat.icon}</div>
             </CardContent>
           </Card>
         ))}
@@ -80,7 +78,7 @@ export function AdminDashboard({
               <XAxis dataKey="date" stroke="var(--foreground)" />
               <YAxis stroke="var(--foreground)" />
               <Tooltip
-                contentStyle={{ backgroundColor: "var(--card)", color: "var(--card-foreground)" }}
+                contentStyle={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}
               />
               <Line
                 type="monotone"
