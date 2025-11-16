@@ -3,24 +3,29 @@ import type { IRegisterPayload } from '@/types/registerPayload';
 
 export const authService = {
   register: async (payload: IRegisterPayload) => {
-    const res = await apiClient.post('/user/register', payload);
+    const res = await apiClient.post('/users/register', payload);
     return res.data;
   },
 
   login: async (email: string, password: string) => {
-    const res = await apiClient.post('/user/login', { email, password });
-    return res.data.userToken;
+    const res = await apiClient.post('/users/login', { email, password });
+    console.log(res.data);
+    return res.data.accessToken;
   },
 
   logout: async () => {
-    await apiClient.post('/user/logout');
+    await apiClient.post('/users/logout');
   },
-  getProfile: async () => {
-    const res = await apiClient.get('/user/profile');
+  getProfile: async (token: string | null) => {
+    const res = await apiClient.get('/users', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return res.data;
   },
   refresh: async () => {
-    const res = await apiClient.post('/user/refresh');
-    return res.data.userToken;
+    const res = await apiClient.post('/users/refresh');
+    return res.data.accessToken;
   },
 };

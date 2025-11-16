@@ -11,9 +11,8 @@ interface RefreshTokenResponse {
   userToken: string;
 }
 
-// --- Create instance ---
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://quizard-backend.vercel.app/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   timeout: 8000,
   headers: {
     'Content-Type': 'application/json',
@@ -22,7 +21,6 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true, // send refresh token cookie
 });
 
-// --- Token handling ---
 let accessToken: string | null = localStorage.getItem('userToken');
 let isRefreshing = false;
 let failedQueue: QueueItem[] = [];
@@ -59,9 +57,9 @@ apiClient.interceptors.response.use(
     if (
       !originalRequest ||
       originalRequest._retry ||
-      originalRequest.url?.includes('/user/login') ||
-      originalRequest.url?.includes('/user/register') ||
-      originalRequest.url?.includes('/user/refresh')
+      originalRequest.url?.includes('/users/login') ||
+      originalRequest.url?.includes('/users/register') ||
+      originalRequest.url?.includes('/users/refresh')
     ) {
       return Promise.reject(error);
     }
@@ -86,7 +84,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await apiClient.post<RefreshTokenResponse>('/user/refresh');
+        const response = await apiClient.post<RefreshTokenResponse>('/users/refresh');
         const newToken = response.data.userToken;
 
         if (!newToken) throw new Error('No token received from refresh endpoint');
