@@ -10,14 +10,19 @@ import { Input } from '@/components/ui/input';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
+  email: z.email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
 
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes';
+
 export function LoginForm({ className, ...props }: React.ComponentProps<'form'>) {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -26,6 +31,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
       password: '',
     },
   });
+
+  const { login } = useAuth();
 
   const {
     register,
@@ -36,9 +43,14 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
   const onSubmit = async (values: LoginValues) => {
     try {
       setLoading(true);
-      console.log('🪄 Login values:', values);
-      // await apiClient.post('/user/login', values)
-      // handle token + redirect
+      const result = await login({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (result.success) {
+        navigate(ROUTES.HOME);
+      }
     } catch (err) {
       console.error(err);
     } finally {

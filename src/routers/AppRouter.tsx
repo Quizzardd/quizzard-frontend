@@ -12,6 +12,7 @@ const AuthLayout = lazy(() =>
 );
 
 // Lazy load pages
+const Home = lazy(() => import('@/pages/Home'));
 const Dashboard = lazy(() => import('@/pages/DashBoard'));
 const SubscriptionPage = lazy(() => import('@/pages/Subscriptions'));
 const ProfilePage = lazy(() => import('@/pages/Profile'));
@@ -27,13 +28,28 @@ const AdminCourses = lazy(() => import('@/pages/Admin/Courses/AdminCourses'));
 
 // Lazy load error pages
 const NotFound = lazy(() => import('@/pages/NotFound'));
+// import MainLayout from '@/layouts/MainLayout';
+// import { AuthLayout } from '@/layouts/AuthLayout';
+// import Dashboard from '@/pages/DashBoard';
+// import SubscriptionPage from '@/pages/Subscriptions';
+// import ProfilePage from '@/pages/Profile';
+// import AdminLayout from '@/layouts/AdminLayout';
+// import { AdminDashboard } from '@/pages/Admin/AdminDashboard';
+// import AdminPlansPage from '@/pages/Admin/Plans/AdminPlansPage';
+// import AdminTeachers from '@/pages/Admin/Teachers/AdminTeachers';
+// import AdminStudents from '@/pages/Admin/Students/AdminStudents';
+// import AdminCourses from '@/pages/Admin/Courses/AdminCourses';
+// import NotFound from '@/pages/NotFound';
 
 export const routes = (
   <Route>
-    {/* Public Route - Auth */}
+    {/* Public Landing Page */}
+    <Route path={ROUTES.HOME} element={<Home />} />
+
+    {/* Auth Route */}
     <Route path={ROUTES.AUTH} element={<AuthLayout />} />
 
-    {/* Protected Routes - Main App */}
+    {/* Protected Routes */}
     <Route element={<ProtectedRoute />}>
       <Route path={ROUTES.HOME} element={<MainLayout />}>
         <Route index element={<Home />} />

@@ -10,7 +10,7 @@ type ProtectedRouteProps = {
 export const ProtectedRoute = ({ allowedRoles, redirectTo = ROUTES.AUTH }: ProtectedRouteProps) => {
   const { isAuthenticated, user, isLoading } = useAuth();
 
-  // Show loading spinner while checking auth
+  console.log('ProtectedRoute - isAuthenticated:', isAuthenticated);
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
