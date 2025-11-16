@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera } from 'lucide-react';
 import profileAvatar from '@/assets/Profile_avatar_placeholder.png';
 import { useGetMe, useUpdateProfile, useChangePassword, useUploadPhoto } from '@/hooks/useUser';
+import toast from 'react-hot-toast';
 
 /* ------------------------------
    PROFILE VALIDATION SCHEMA
@@ -102,8 +103,8 @@ export default function Profile() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) return alert('Invalid image');
-    if (file.size > 2 * 1024 * 1024) return alert('Max size is 2MB');
+    if (!file.type.startsWith('image/')) return toast.error('Invalid image');
+    if (file.size > 2 * 1024 * 1024) return toast.error('Max size is 2MB');
 
     // Optimistic preview
     setPhotoPreview(URL.createObjectURL(file));
@@ -185,7 +186,7 @@ export default function Profile() {
           <label className="block text-sm font-medium mb-1">Email Address</label>
           <input
             {...register('email')}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+            className="w-full md:w-1/2 rounded-lg border border-input bg-background px-3 py-2 text-sm"
             
           />
           {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
