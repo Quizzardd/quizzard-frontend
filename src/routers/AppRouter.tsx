@@ -44,7 +44,7 @@ export const routes = (
   <Route>
     {/* Public Landing Page */}
     <Route path={ROUTES.HOME} element={<Home />} />
-    
+
     {/* Auth Route */}
     <Route path={ROUTES.AUTH} element={<AuthLayout />} />
 

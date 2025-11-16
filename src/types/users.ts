@@ -6,7 +6,7 @@ export interface IUser {
 
   phone?: string;
   age?: number;
-  gender?: 'male' | 'female' | 'other';
+  gender?: 'male' | 'female';
 
   role: 'user' | 'admin';
   isActive: boolean;

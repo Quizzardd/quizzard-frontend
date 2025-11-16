@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera } from 'lucide-react';
@@ -16,7 +16,7 @@ const profileSchema = z.object({
   email: z.string().email('Invalid email'),
   phone: z.string().optional(),
   age: z.coerce.number().optional(),
-  gender: z.enum(['male', 'female', 'other']).optional(),
+  gender: z.enum(['male', 'female']).optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -51,7 +51,7 @@ export default function Profile() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as Resolver<ProfileFormData>,
     defaultValues: user
       ? {
           firstName: user.firstName,
@@ -187,7 +187,6 @@ export default function Profile() {
           <input
             {...register('email')}
             className="w-full md:w-1/2 rounded-lg border border-input bg-background px-3 py-2 text-sm"
-            
           />
           {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
         </div>
