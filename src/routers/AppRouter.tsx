@@ -2,7 +2,8 @@ import { lazy } from 'react';
 import { Route } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import Home from '@/pages/Home';
+import { Home } from 'lucide-react';
+import HomePage from '@/pages/Home';
 
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
@@ -12,8 +13,6 @@ const AuthLayout = lazy(() =>
 );
 
 // Lazy load pages
-const Home = lazy(() => import('@/pages/Home'));
-const Dashboard = lazy(() => import('@/pages/DashBoard'));
 const SubscriptionPage = lazy(() => import('@/pages/Subscriptions'));
 const ProfilePage = lazy(() => import('@/pages/Profile'));
 
@@ -44,7 +43,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 export const routes = (
   <Route>
     {/* Public Landing Page */}
-    <Route path={ROUTES.HOME} element={<Home />} />
+    <Route path={ROUTES.HOME} element={<HomePage />} />
 
     {/* Auth Route */}
     <Route path={ROUTES.AUTH} element={<AuthLayout />} />
