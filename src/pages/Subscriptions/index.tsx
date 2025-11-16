@@ -68,10 +68,10 @@ export default function SubscriptionPage() {
     createdAt: new Date('2025-01-01'),
   };
   return (
-    <div className="m-4">
+    <div className="min-h-screen bg-background m-4 p-6">
       <CurrentPlan subscription={subscription}></CurrentPlan>
       <SubscriptionPlans plans={plans}></SubscriptionPlans>
-      <AiInfo/>
+      <AiInfo />
     </div>
   );
 }

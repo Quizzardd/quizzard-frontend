@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { Route } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import Home from '@/pages/Home';
 
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
@@ -35,7 +36,7 @@ export const routes = (
     {/* Protected Routes - Main App */}
     <Route element={<ProtectedRoute />}>
       <Route path={ROUTES.HOME} element={<MainLayout />}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<Home />} />
         <Route path={ROUTES.QUIZZES}>
           <Route index element={<div>Quizzes List</div>} />
           <Route path=":quizId" element={<div>Quiz Details</div>} />
