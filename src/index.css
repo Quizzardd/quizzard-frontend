@@ -92,6 +92,8 @@ body {
   --foreground: #111827;
   --muted-foreground: #6b7280;
   --info-bg: oklch(0.97 0.02 240); /* soft bluish background */
+  --secondary-hover: oklch(0.92 0.007 247.896);
+
 }
 
 .dark {
@@ -127,6 +129,8 @@ body {
   --sidebar-border: oklch(0.3 0.01 270 / 50%);
   --sidebar-ring: oklch(0.55 0.03 270);
   --highlight: oklch(0.85 0.12 265);
+  --secondary-hover: oklch(0.38 0.03 260);
+
 }
 
 @layer base {
