@@ -1,7 +1,9 @@
-import { GalleryVerticalEnd, LogIn } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { useAuth } from '@/hooks/useAuth';
+import { ROUTES } from '@/config/routes';
+import { GalleryVerticalEnd, LogIn, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus } from 'lucide-react';
 import { AuthFormSwitcher } from '@/components/auth/AuthFormSwitcher';
 import { cn } from '@/lib/utils';
 
@@ -13,15 +15,9 @@ type BackgroundSectionProps = {
   className?: string;
 };
 
-export function BackgroundSection({
-  image,
-  icon,
-  title,
-  subtitle,
-  className,
-}: BackgroundSectionProps) {
+function BackgroundSection({ image, icon, title, subtitle, className }: BackgroundSectionProps) {
   return (
-    <AnimatePresence mode="sync">
+    <AnimatePresence mode="wait">
       <motion.div
         key={title}
         initial={{ opacity: 0, scale: 1.05 }}
@@ -62,20 +58,27 @@ const Header = () => (
 
 export function AuthLayout() {
   const [isLogin, setIsLogin] = useState(true);
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const redirectPath = user.role === 'admin' ? ROUTES.ADMIN : ROUTES.HOME;
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      {/* Left (form) */}
-      <div className="flex flex-col gap-4 p-6 md:p-10">
+    <div className="grid h-svh lg:grid-cols-2 overflow-hidden">
+      <div className="flex flex-col gap-4 p-6 md:p-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <Header />
         <div className="flex flex-1 items-center justify-center">
-          {/* Pass state to the switcher */}
           <AuthFormSwitcher isLogin={isLogin} setIsLogin={setIsLogin} />
         </div>
       </div>
 
-      {/* Right (background) */}
-      <div className="relative hidden overflow-hidden lg:block">
+      <div className="relative hidden lg:block">
         {isLogin ? (
           <BackgroundSection
             image="/loginBg.jpg"

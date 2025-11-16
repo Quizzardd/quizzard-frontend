@@ -10,7 +10,6 @@ interface AdminPlanCardProps {
 }
 
 export function AdminPlanCard({ plan, onDelete, onUpdate }: AdminPlanCardProps): JSX.Element {
-  const isPro = plan.name.toLowerCase().includes('pro');
   const isPlus = plan.name.toLowerCase().includes('plus');
 
   return (

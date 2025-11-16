@@ -1,6 +1,11 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+html,
+body {
+  height: 100%;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -100,7 +105,7 @@
   --primary-foreground: oklch(98% 0.02 270);
   --secondary: oklch(0.45 0.03 260);
   --secondary-foreground: oklch(98% 0.02 270);
-  --muted: oklch(0.35 0.02 260); 
+  --muted: oklch(0.35 0.02 260);
   --muted-foreground: oklch(0.75 0.03 260);
   --accent: oklch(0.4 0.03 265);
   --accent-foreground: oklch(98% 0.02 270);
@@ -124,7 +129,6 @@
   --highlight: oklch(0.85 0.12 265);
 }
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -134,12 +138,12 @@
   }
 }
 @layer utilities {
-    .container {
-        @apply mx-auto px-4 py-16 w-full
+  .container {
+    @apply mx-auto px-4 py-16 w-full
         sm:max-w-[540px]
         md:max-w-[720px]
         lg:max-w-[960px]
         xl:max-w-[1140px]
         2xl:max-w-[1320px];
-    }
+  }
 }

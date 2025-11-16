@@ -1,10 +1,11 @@
+import { memo } from 'react';
 import type { IGroup } from '@/types';
 
 interface CourseCardProps {
   course: IGroup;
 }
 
-export default function CourseCard({ course }: CourseCardProps) {
+function CourseCard({ course }: CourseCardProps) {
   return (
     <div className="bg-card overflow-hidden rounded-xl shadow hover:shadow-md transition">
       {course.coverUrl && (
@@ -21,9 +22,11 @@ export default function CourseCard({ course }: CourseCardProps) {
       {/* Optional: show owner if populated */}
       {typeof course.owner !== 'string' && 'firstname' in course.owner && (
         <p className="text-xs text-muted-foreground mt-1">
-          Teacher: {course.owner.firstname} {course.owner.lastname}
+          {/* Teacher: {course.owner.firstname} {course.owner.lastname} */}
         </p>
       )}
     </div>
   );
 }
+
+export default memo(CourseCard);

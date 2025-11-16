@@ -40,7 +40,7 @@ export function AuthFormSwitcher({ isLogin, setIsLogin }: AuthFormSwitcherProps)
           >
             <RegisterForm />
             <p className="text-center text-sm mt-4">
-              Already have an account?{' '}
+              Already have an account?
               <Button variant="link" className="p-0 text-primary" onClick={() => setIsLogin(true)}>
                 Login
               </Button>
