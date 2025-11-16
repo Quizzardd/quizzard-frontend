@@ -22,7 +22,7 @@ function CourseCard({ course }: CourseCardProps) {
       {/* Optional: show owner if populated */}
       {typeof course.owner !== 'string' && 'firstname' in course.owner && (
         <p className="text-xs text-muted-foreground mt-1">
-          Teacher: {course.owner.firstname} {course.owner.lastname}
+          {/* Teacher: {course.owner.firstname} {course.owner.lastname} */}
         </p>
       )}
     </div>
