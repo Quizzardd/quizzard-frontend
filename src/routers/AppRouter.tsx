@@ -51,7 +51,7 @@ export const routes = (
     {/* Protected Routes */}
     <Route element={<ProtectedRoute />}>
       <Route path={ROUTES.HOME} element={<MainLayout />}>
-        <Route index element={<Home />} />
+        <Route index element={<HomePage />} />
         <Route path={ROUTES.QUIZZES}>
           <Route index element={<div>Quizzes List</div>} />
           <Route path=":quizId" element={<div>Quiz Details</div>} />
