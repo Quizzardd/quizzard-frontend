@@ -6,9 +6,9 @@ import { useState } from 'react';
 export interface GroupCardProps {
   title: string;
   owner: string;
-  coverUrl: string;
-  membersCount: number;
-  modulesCount: number;
+  coverUrl?: string;
+  membersCount?: number;
+  modulesCount?: number;
   joinedAt: string;
   inviteCode?: string;
   role: 'teacher' | 'student';
