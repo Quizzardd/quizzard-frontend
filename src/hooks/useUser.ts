@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import type { IUser } from '@/types';
-import { getMe, updateProfile, changePassword, uploadProfilePhoto, getUserStats, getMyGroups } from '@/services/userService';
+import { getMe, updateProfile, changePassword, uploadProfilePhoto, getUserStats } from '@/services/userService';
 import { getApiErrorMessage } from '@/lib/apiError';
 
 // -------------------- GET USER --------------------
@@ -17,14 +17,6 @@ export const useUserStats = () => {
   return useQuery({
     queryKey: ['user-stats'],
     queryFn: getUserStats,
-  });
-};
-
-// -------------------- GET USER GROUPS -------------------
-export const useMyGroups = () => {
-  return useQuery({
-    queryKey: ['my-groups'],
-    queryFn: getMyGroups,
   });
 };
 
