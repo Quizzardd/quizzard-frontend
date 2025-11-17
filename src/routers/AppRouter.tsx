@@ -24,6 +24,7 @@ const AdminPlansPage = lazy(() => import('@/pages/Admin/Plans/AdminPlansPage'));
 const AdminTeachers = lazy(() => import('@/pages/Admin/Teachers/AdminTeachers'));
 const AdminStudents = lazy(() => import('@/pages/Admin/Students/AdminStudents'));
 const AdminCourses = lazy(() => import('@/pages/Admin/Courses/AdminCourses'));
+import GroupDetails from '@/pages/GroupDetails';
 
 // Lazy load error pages
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -59,6 +60,7 @@ export const routes = (
         <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<div>Settings Page</div>} />
+        <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
       </Route>
     </Route>
 
