@@ -10,4 +10,5 @@ export const ROUTES = {
   TEACHERS: 'teachers',
   COURSES: 'courses',
   PLANS: 'plans',
+  GROUP_DETAILS: '/groups/:groupId',
 };
