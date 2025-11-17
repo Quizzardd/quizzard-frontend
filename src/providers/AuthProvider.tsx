@@ -27,7 +27,7 @@ const initialState: AuthState = {
 type AuthAction =
   | { type: 'LOGIN_START' }
   | { type: 'LOGIN_SUCCESS'; payload: { token: string; user?: IUser } }
-  | { type: 'LOGIN_FAILURE'; payload: { error: string } }
+  | { type: 'LOGIN_FAILURE'; payload: { error: string | null } }
   | { type: 'LOGOUT' };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -87,17 +87,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('userToken', token);
 
       dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
+      toast.success('Logged in successfully');
       return { success: true };
     } catch (error) {
-      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
-      const message =
-        error instanceof Error
-          ? error.message
-          : axiosError?.response?.data?.message || 'Login failed';
+      const message = getApiErrorMessage(error, 'Login failed');
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
         payload: { error: message },
       });
+      toast.error(message);
       return { success: false, error: message };
     }
   };
@@ -107,22 +105,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       const res = await authService.register(data);
+      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: { error: null } });
+      toast.success(res?.message);
       return { success: true, data: res };
     } catch (error) {
-      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
-      const message =
-        error instanceof Error
-          ? error.message
-          : axiosError?.response?.data?.message || 'Registration failed';
+      console.log('error at registr: ', error);
+      const message = getApiErrorMessage(error, 'Registration failed');
+      toast.error(message);
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
         payload: { error: message },
       });
       return { success: false, error: message };
+    } finally {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: { error: null } });
     }
   };
 
-  // 🚪 Logout
   const logout = async () => {
     await authService.logout();
     dispatch({ type: AUTH_ACTIONS.LOGOUT });

@@ -9,7 +9,6 @@ export const authService = {
 
   login: async (email: string, password: string) => {
     const res = await apiClient.post('/users/login', { email, password });
-    console.log(res.data);
     return res.data.accessToken;
   },
 

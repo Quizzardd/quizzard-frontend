@@ -74,14 +74,6 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
           </p>
         </div>
 
-        {/* <Field>
-          <FieldLabel htmlFor="fullName">
-            Full Name
-            <span className="text-red-500">*</span>
-          </FieldLabel>
-          <Input id="fullName" placeholder="John Doe" {...register('fullName')} />
-          {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
-        </Field> */}
         {/* add first name and last name at 1 row */}
         <div className="flex gap-4">
           <Field className="flex-1">
@@ -148,7 +140,6 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<'form
 
         {/* Photo URL */}
 
-        {/* Submit */}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating account...' : 'Sign Up'}
         </Button>
