@@ -10,6 +10,7 @@ export interface GroupCardProps {
   membersCount: number;
   modulesCount: number;
   joinedAt: string;
+  inviteCode?: string;
   role: 'teacher' | 'student';
 }
 
@@ -19,13 +20,14 @@ export default function GroupCard({
   coverUrl,
   membersCount,
   modulesCount,
+  inviteCode,
   joinedAt,
   role,
 }: GroupCardProps) {
   const [showInvite, setShowInvite] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
 
-  const inviteCode = 'ABC123'; // temporary dummy code — will come from API later
+  // const inviteCode = 'ABC123'; // temporary dummy code — will come from API later
   const isTeacher = role === 'teacher';
 
   return (
@@ -84,21 +86,21 @@ export default function GroupCard({
         {/* Action Buttons */}
         <div className="flex gap-2 pt-1">
           {/* Open Group */}
-          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition">
+          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer">
             Open Group
           </button>
 
           {/* Role-Based Action */}
           {isTeacher ? (
             <button
-              className="w-full bg-secondary text-secondary-foreground font-medium py-2 rounded-lg hover:bg-[var(--secondary-hover)] transition"
+              className="w-full bg-secondary text-secondary-foreground font-medium py-2 rounded-lg hover:bg-[var(--secondary-hover)] transition cursor-pointer"
               onClick={() => setShowInvite(true)}
             >
               Invite
             </button>
           ) : (
             <button
-              className="w-full border border-destructive text-destructive font-medium py-2 rounded-lg hover:bg-destructive/10"
+              className="w-full border border-destructive text-destructive font-medium py-2 rounded-lg hover:bg-destructive/10 cursor-pointer"
               onClick={() => setShowLeave(true)}
             >
               Leave
@@ -107,11 +109,13 @@ export default function GroupCard({
         </div>
       </div>
       {/* Modals */}
-      <InviteStudentsModal
-        open={showInvite}
-        onClose={() => setShowInvite(false)}
-        inviteCode={inviteCode}
-      />
+      {isTeacher && (
+        <InviteStudentsModal
+          open={showInvite}
+          onClose={() => setShowInvite(false)}
+          inviteCode={inviteCode}
+        />
+      )}
 
       <LeaveGroupDialog
         open={showLeave}

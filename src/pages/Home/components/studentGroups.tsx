@@ -9,33 +9,7 @@ export default function StudentGroups() {
       return <GroupsListSkeleton />;
 }
 
-    //const student = data?.filter((item: any) => item.role === 'student') || [];
-    const student = [
-      {
-        group: {
-          title: 'JavaScript Bootcamp',
-          owner: 'Sara',
-          image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
-          url: '/g/js-bootcamp',
-          membersCount: 40,
-          modulesCount: 18,
-        },
-        role: 'student',
-        joinedAt: '2025-01-12T10:00:00Z',
-      },
-      {
-        group: {
-          title: 'Beginner Python',
-          owner: 'Laila',
-          image: 'https://images.unsplash.com/photo-1518770660439-4636190af475',
-          url: '/g/python-beginner',
-          membersCount: 60,
-          modulesCount: 14,
-        },
-        role: 'student',
-        joinedAt: '2025-03-02T10:00:00Z',
-      },
-    ];
+    const student = data?.filter((item: any) => item.role === 'student') || [];
 
   if (student.length === 0) {
     return <p className="text-muted-foreground text-sm">No enrolled groups yet.</p>;

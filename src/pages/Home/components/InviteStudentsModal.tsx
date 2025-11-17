@@ -14,7 +14,7 @@ import { Copy, Check } from 'lucide-react';
 interface InviteStudentsModalProps {
   open: boolean;
   onClose: () => void;
-  inviteCode: string;
+  inviteCode?: string;
 }
 
 export default function InviteStudentsModal({
@@ -25,6 +25,7 @@ export default function InviteStudentsModal({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    if (!inviteCode) return;
     await navigator.clipboard.writeText(inviteCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
