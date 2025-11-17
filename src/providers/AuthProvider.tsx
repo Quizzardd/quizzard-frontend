@@ -5,6 +5,8 @@ import { AuthContext } from '@/contexts/AuthContext';
 import type { IUser } from '@/types';
 import type { IRegisterPayload } from '@/types/registerPayload';
 import { AUTH_ACTIONS } from '@/constants/authActions';
+import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 
 type AuthState = {
   token: string | null;
@@ -59,19 +61,17 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Load user on mount if token exists
   useEffect(() => {
     const loadUser = async () => {
       const token = localStorage.getItem('userToken');
-      if (token && !state.user) {
+      if (token) {
         try {
-          const user = await fetchUser(token);
-          if (user) {
-            dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user } });
-          }
+          dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
+
+          toast.success('Logged in successfully');
         } catch (error) {
-          console.error('Failed to load user:', error);
-          // If token is invalid, clear it
+          console.log(error);
+          toast.error(getApiErrorMessage(error, 'Failed to load user'));
           localStorage.removeItem('userToken');
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
@@ -80,22 +80,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadUser();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchUser = async (token: string | null) => {
-    if (!token) return null;
-    const userData = await authService.getProfile(token);
-    return userData;
-  };
-
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       const token = await authService.login(email, password);
       localStorage.setItem('userToken', token);
 
-      // Fetch user data after successful login
-      const user = await fetchUser(token);
-
-      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user } });
+      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
       return { success: true };
     } catch (error) {
       const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
@@ -147,7 +138,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     login,
     logout,
     register,
-    fetchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

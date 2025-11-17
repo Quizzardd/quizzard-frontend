@@ -22,7 +22,7 @@ const MainLayout: React.FC<IMainLayout> = () => {
         <SidebarProvider>
           <AppSidebar title="QUIZZARD" footerText="© 2025 Quizzard" items={sidebarItems} />
 
-          <main className="flex-1 p-6 ">
+          <main className="flex-1">
             <div className="md:hidden mb-4">
               <SidebarTrigger />
             </div>

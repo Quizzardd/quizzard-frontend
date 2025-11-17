@@ -1,6 +1,6 @@
-import type { ForwardRefExoticComponent, RefAttributes } from "react"
-import { type LucideProps } from "lucide-react"
-import { NavLink } from "react-router"
+import type { ForwardRefExoticComponent, RefAttributes } from 'react';
+import { type LucideProps } from 'lucide-react';
+import { NavLink } from 'react-router';
 
 import {
   Sidebar,
@@ -11,26 +11,24 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 type SidebarItem = {
-  title: string
-  url: string
-  icon: ForwardRefExoticComponent<
-    Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
-  >
-}
+  title: string;
+  url: string;
+  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
+};
 
 type AppSidebarProps = {
-  items: SidebarItem[]
-  title?: string
-  footerText?: string
-}
+  items: SidebarItem[];
+  title?: string;
+  footerText?: string;
+};
 
 export function AppSidebar({
   items,
-  title = "App Sidebar",
-  footerText = "© 2025 Quizzard",
+  title = 'App Sidebar',
+  footerText = '© 2025 Quizzard',
 }: AppSidebarProps) {
   return (
     <Sidebar
@@ -49,11 +47,9 @@ export function AppSidebar({
         {/* Logo / Title */}
         <div className="mb-6 flex items-center justify-center">
           <h2 className="text-2xl font-bold tracking-wide">
-            {title.split(" ")[0]}
-            <span
-              style={{ color: "var(--color-sidebar-primary)" }}
-            >
-              {title.split(" ")[1] ?? ""}
+            {title.split(' ')[0]}
+            <span style={{ color: 'var(--color-sidebar-primary)' }}>
+              {title.split(' ')[1] ?? ''}
             </span>
           </h2>
         </div>
@@ -76,15 +72,13 @@ export function AppSidebar({
                         transition-all duration-200
                         ${
                           isActive
-                            ? "bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-accent-foreground)]"
-                            : "hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-accent-foreground)]"
+                            ? 'bg-[var(--color-sidebar-accent)] text-[var(--color-sidebar-accent-foreground)]'
+                            : 'hover:bg-[var(--color-sidebar-accent)] hover:text-[var(--color-sidebar-accent-foreground)]'
                         }
                       `
                       }
                     >
-                      <item.icon
-                        className="h-5 w-5 text-[var(--color-muted-foreground)] group-hover:text-[var(--color-sidebar-primary)] transition-colors"
-                      />
+                      <item.icon className="h-5 w-5 text-[var(--color-muted-foreground)] group-hover:text-[var(--color-sidebar-primary)] transition-colors" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -100,5 +94,5 @@ export function AppSidebar({
         </div>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }
