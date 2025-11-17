@@ -1,9 +1,9 @@
-import { useMyGroups } from '@/hooks/useUser';
 import GroupCard from './GroupCard';
 import  { GroupsListSkeleton } from './GroupsSkeleton';
+import { useUserGroups } from '@/hooks/UseGroup';
 
 export default function StudentGroups() {
-  const { data, isLoading } = useMyGroups();
+  const { data, isLoading } = useUserGroups();
 
   if (isLoading) {
       return <GroupsListSkeleton />;
