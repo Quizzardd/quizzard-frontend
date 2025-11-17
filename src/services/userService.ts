@@ -33,7 +33,7 @@ export const changePassword = async (data: { currentPassword: string; newPasswor
 // ---------- UPLOAD PROFILE PHOTO ----------
 export const uploadProfilePhoto = async (file: File) => {
   const formData = new FormData();
-  formData.append('photo', file);
+  formData.append('image', file);
 
   const res = await apiClient.put('/users/photo', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
