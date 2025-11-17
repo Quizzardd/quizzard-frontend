@@ -8,6 +8,16 @@ export const getMe = async (): Promise<IUser> => {
   return res.data.data;
 };
 
+//------------- GET USER STATS ---------------
+export const getUserStats = async () => {
+  const res = await apiClient.get('/users/stats');
+  return res.data.data;
+};
+// ----------- GET USER GROUPS -------------------
+export const getMyGroups = async () => {
+  const res = await apiClient.get('/users/my-groups');
+  return res.data.data; // array of groups + role
+};
 // ---------- UPDATE PROFILE ----------
 export const updateProfile = async (data: Partial<IUser>) => {
   const res = await apiClient.put('/users', data);

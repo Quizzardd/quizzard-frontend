@@ -2,6 +2,8 @@ import { lazy } from 'react';
 import { Route, Navigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Home } from 'lucide-react';
+import HomePage from '@/pages/Home';
 import { useAuth } from '@/hooks/useAuth';
 
 // Lazy load layouts
@@ -12,8 +14,6 @@ const AuthLayout = lazy(() =>
 );
 
 // Lazy load pages
-const Home = lazy(() => import('@/pages/Home'));
-const Dashboard = lazy(() => import('@/pages/DashBoard'));
 const SubscriptionPage = lazy(() => import('@/pages/Subscriptions'));
 const ProfilePage = lazy(() => import('@/pages/Profile'));
 
@@ -34,24 +34,23 @@ const HomeRoute = () => {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
-  return <Home />;
+  return <HomePage />;
 };
 
 export const routes = (
   <Route>
-    {/* Public Landing Page - Redirects to dashboard if authenticated */}
-    <Route path={ROUTES.HOME} element={<HomeRoute />} />
+    <Route path="/" element={<HomeRoute />} />
 
     {/* Auth Route */}
     <Route path={ROUTES.AUTH} element={<AuthLayout />} />
 
     {/* Protected Routes */}
     <Route element={<ProtectedRoute />}>
-      <Route element={<MainLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+      <Route path={ROUTES.HOME} element={<MainLayout />}>
+        <Route index element={<HomePage />} />
         <Route path={ROUTES.QUIZZES}>
           <Route index element={<div>Quizzes List</div>} />
           <Route path=":quizId" element={<div>Quiz Details</div>} />
@@ -59,6 +58,7 @@ export const routes = (
         <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<div>Settings Page</div>} />
+        <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
         <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
       </Route>
     </Route>
