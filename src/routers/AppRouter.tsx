@@ -1,17 +1,14 @@
 import { lazy } from 'react';
-import { Route, Navigate } from 'react-router';
+import { Route } from 'react-router';
 import { ROUTES } from '@/config/routes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Home } from 'lucide-react';
 import HomePage from '@/pages/Home';
-import { useAuth } from '@/hooks/useAuth';
+import { HomeRoute } from './HomeRoute';
+import { AuthRoute } from './AuthRoute';
 
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
-const AuthLayout = lazy(() =>
-  import('@/layouts/AuthLayout').then((m) => ({ default: m.AuthLayout })),
-);
 
 // Lazy load pages
 const SubscriptionPage = lazy(() => import('@/pages/Subscriptions'));
@@ -29,25 +26,15 @@ const GroupDetails = lazy(() => import('@/pages/GroupDetails'));
 
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
-// Component to handle authenticated redirect
-const HomeRoute = () => {
-  const { isAuthenticated } = useAuth();
-
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <HomePage />;
-};
-
 export const routes = (
   <Route>
+    {/* Public landing page - redirects to /home if authenticated */}
     <Route path="/" element={<HomeRoute />} />
 
-    {/* Auth Route */}
-    <Route path={ROUTES.AUTH} element={<AuthLayout />} />
+    {/* Auth routes - should redirect to /home if already authenticated */}
+    <Route path={ROUTES.AUTH} element={<AuthRoute />} />
 
-    {/* Protected Routes */}
+    {/* Protected routes - require authentication */}
     <Route element={<ProtectedRoute />}>
       <Route path={ROUTES.HOME} element={<MainLayout />}>
         <Route index element={<HomePage />} />
@@ -59,11 +46,10 @@ export const routes = (
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<div>Settings Page</div>} />
         <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
-        <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
       </Route>
     </Route>
 
-    {/* Protected Routes - Admin Only */}
+    {/* Admin routes - require authentication + admin role */}
     <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
       <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
         <Route
