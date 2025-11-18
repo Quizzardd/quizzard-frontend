@@ -4,6 +4,7 @@ import {
   deleteGroup,
   getUserGroups,
   updateGroup,
+  joinGroup,
 } from '@/services/groupService';
 import type { CreateGroupPayload, UpdateGroupPayload } from '@/services/groupService';
 import type { IGroupMember } from '@/types/groups';
@@ -173,6 +174,22 @@ export const useArchiveGroup = () => {
     },
     onSuccess: () => {
       toast.success('Group archived successfully!');
+      queryClient.invalidateQueries({ queryKey: ['my-groups'] });
+    },
+  });
+};
+
+// -------------------- JOIN GROUP -------------------
+export const useJoinGroup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: joinGroup,
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, 'Failed to join group'));
+    },
+    onSuccess: () => {
+      toast.success('Successfully joined the group!');
       queryClient.invalidateQueries({ queryKey: ['my-groups'] });
     },
   });
