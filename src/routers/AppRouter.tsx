@@ -5,6 +5,8 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import HomePage from '@/pages/Home';
 import { HomeRoute } from './HomeRoute';
 import { AuthRoute } from './AuthRoute';
+import Announcements from '@/pages/GroupDetails/pages/Announcements';
+import People from '@/pages/GroupDetails/pages/People';
 
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
@@ -28,13 +30,10 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 
 export const routes = (
   <Route>
-    {/* Public landing page - redirects to /home if authenticated */}
     <Route path="/" element={<HomeRoute />} />
 
-    {/* Auth routes - should redirect to /home if already authenticated */}
     <Route path={ROUTES.AUTH} element={<AuthRoute />} />
 
-    {/* Protected routes - require authentication */}
     <Route element={<ProtectedRoute />}>
       <Route path={ROUTES.HOME} element={<MainLayout />}>
         <Route index element={<HomePage />} />
@@ -45,11 +44,17 @@ export const routes = (
         <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<div>Settings Page</div>} />
-        <Route path={ROUTES.GROUP_DETAILS} element={<GroupDetails />} />
+
+        <Route path="/groups/:groupId" element={<GroupDetails />}>
+          <Route index element={<Announcements />} />
+          <Route path="announcements" element={<Announcements />} />
+          <Route path="classwork" element={<div>Classwork content…</div>} />
+          <Route path="people" element={<People />} />
+          <Route path="grades" element={<div>Grades content…</div>} />
+        </Route>
       </Route>
     </Route>
 
-    {/* Admin routes - require authentication + admin role */}
     <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
       <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
         <Route
@@ -75,7 +80,6 @@ export const routes = (
       </Route>
     </Route>
 
-    {/* 404 Route */}
     <Route path="*" element={<NotFound />} />
   </Route>
 );
