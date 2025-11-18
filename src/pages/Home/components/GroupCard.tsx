@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router';
 
 export interface GroupCardProps {
   groupId: string;
@@ -53,7 +54,7 @@ export default function GroupCard({
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
-
+  const navigate = useNavigate();
   // const inviteCode = 'ABC123'; // temporary dummy code — will come from API later
   const isTeacher = role === 'teacher';
 
@@ -151,7 +152,8 @@ export default function GroupCard({
         {/* Action Buttons */}
         <div className="flex gap-2 pt-1">
           {/* Open Group */}
-          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer">
+          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
+          onClick={()=>navigate(`/groups/${groupId}`)}>
             Open Group
           </button>
 
@@ -169,7 +171,7 @@ export default function GroupCard({
               onClick={() => setShowLeave(true)}
             >
               Leave
-            </button>
+            </button> 
           )}
         </div>
       </div>
