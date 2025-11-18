@@ -45,6 +45,7 @@ export default function TeachingGroups() {
           {teaching.map((item: IGroupMember) => (
             <GroupCard
               key={item.group._id}
+              groupId={item.group._id}
               title={item.group.title}
               owner={item.group.owner}
               coverUrl={item.group.coverUrl}
