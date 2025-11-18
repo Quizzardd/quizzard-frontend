@@ -84,8 +84,8 @@ body {
   --highlight: oklch(0.844 0.127 264.703);
   --primary: #2563eb; /* Tailwind blue-600 */
   --primary-foreground: #ffffff;
-  --accent: #9333ea; /* violet for Pro */
-  --accent-foreground: #ffffff;
+  --accent: #f3f4f6; /* Subtle gray for accent backgrounds */
+  --accent-foreground: #1f2937; /* Dark gray for accent text */
   --card: #ffffff;
   --card-foreground: #111827;
   --background: #f9fafb;
@@ -93,7 +93,6 @@ body {
   --muted-foreground: #6b7280;
   --info-bg: oklch(0.97 0.02 240); /* soft bluish background */
   --secondary-hover: oklch(0.92 0.007 247.896);
-
 }
 
 .dark {
@@ -109,8 +108,8 @@ body {
   --secondary-foreground: oklch(98% 0.02 270);
   --muted: oklch(0.35 0.02 260);
   --muted-foreground: oklch(0.75 0.03 260);
-  --accent: oklch(0.4 0.03 265);
-  --accent-foreground: oklch(98% 0.02 270);
+  --accent: oklch(0.25 0.02 270); /* Subtle darker background for accent */
+  --accent-foreground: oklch(0.85 0.02 270); /* Light text on dark accent */
   --destructive: oklch(0.65 0.25 25); /* ألوان الحذف/الخطر */
   --border: oklch(0.3 0.01 270 / 50%);
   --input: oklch(0.25 0.02 270 / 60%);
@@ -130,7 +129,6 @@ body {
   --sidebar-ring: oklch(0.55 0.03 270);
   --highlight: oklch(0.85 0.12 265);
   --secondary-hover: oklch(0.38 0.03 260);
-
 }
 
 @layer base {
