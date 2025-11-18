@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
-import ClassroomTabs from './components/ClassroomTabs';
-
-interface IGroupDetails {}
+import { useParams } from 'react-router';
+import { useGroupById } from '@/hooks/UseGroup';
+import GroupLayout from './layout/GroupLayout';
 
 const Header = () => {
   return (
@@ -23,13 +23,43 @@ const Header = () => {
   );
 };
 
-const GroupDetails: React.FC<IGroupDetails> = ({ props }) => {
-  return (
-    <div className="bg-background">
-      <Header />
-      <ClassroomTabs />
-    </div>
-  );
+const GroupDetails = () => {
+  const { groupId } = useParams<{ groupId: string }>();
+  const { data: group, isLoading, error } = useGroupById(groupId!);
+
+  // Handle loading and error states
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error loading group details.</div>;
+  }
+  console.log('Group Details:', group);
+
+  const tabs = [
+    {
+      value: 'announcements',
+      label: 'Announcements',
+      path: 'announcements',
+    },
+    {
+      value: 'classwork',
+      label: 'Classwork',
+      path: 'classwork',
+    },
+    {
+      value: 'people',
+      label: 'People',
+      path: 'people',
+    },
+    {
+      value: 'grades',
+      label: 'Grades',
+      path: 'grades',
+    },
+  ];
+
+  return <GroupLayout Header={Header} tabs={tabs} />;
 };
 
 export default GroupDetails;

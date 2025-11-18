@@ -1,6 +1,7 @@
-import { Bell, Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Bell, Search } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,12 +9,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ModeToggle } from "./ModeToggle"
+} from '@/components/ui/dropdown-menu';
+import { ModeToggle } from './ModeToggle';
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
+
   return (
-<header className="flex items-center justify-between px-6 py-3 border-b bg-background text-foreground shadow-sm transition-colors z-20 sticky top-0">
+    <header className="flex items-center justify-between px-6 py-3 border-b bg-background text-foreground shadow-sm transition-colors z-20 sticky top-0">
       {/* Left Section: Logo */}
       <div className="flex items-center gap-2">
         <div className="bg-primary text-primary-foreground p-2 rounded-xl shadow-sm">
@@ -24,12 +27,7 @@ export default function Navbar() {
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6l4 2"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" />
           </svg>
         </div>
         <h1 className="text-lg font-semibold">QUIZZARD</h1>
@@ -54,7 +52,7 @@ export default function Navbar() {
           <Bell className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
           <span className="absolute -top-1 -right-1 bg-destructive h-2.5 w-2.5 rounded-full" />
         </div>
-        <ModeToggle/>
+        <ModeToggle />
 
         {/* User Dropdown */}
         <DropdownMenu>
@@ -74,10 +72,10 @@ export default function Navbar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

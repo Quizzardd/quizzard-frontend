@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (token) {
         try {
           dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
-
           toast.success('Logged in successfully');
         } catch (error) {
           console.log(error);
@@ -78,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     loadUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {
@@ -109,7 +108,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success(res?.message);
       return { success: true, data: res };
     } catch (error) {
-      console.log('error at registr: ', error);
       const message = getApiErrorMessage(error, 'Registration failed');
       toast.error(message);
       dispatch({
@@ -123,9 +121,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await authService.logout();
-    dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    localStorage.removeItem('userToken');
+    try {
+      await authService.logout();
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      localStorage.removeItem('userToken');
+      toast.success('Logged out successfully');
+    } catch (error) {
+      const message = getApiErrorMessage(error, 'Logout failed');
+      toast.error(message);
+    } finally {
+      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      localStorage.removeItem('userToken');
+    }
   };
 
   const value = {
