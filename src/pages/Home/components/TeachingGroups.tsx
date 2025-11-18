@@ -44,7 +44,7 @@ export default function TeachingGroups() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {teaching.map((item: IGroupMember) => (
             <GroupCard
-              key={item._id}
+              key={item.group._id}
               title={item.group.title}
               owner={item.group.owner}
               coverUrl={item.group.coverUrl}

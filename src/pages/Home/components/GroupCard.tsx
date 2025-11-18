@@ -2,10 +2,11 @@ import { Users, BookOpen, Clock, ShieldCheck, GraduationCap } from 'lucide-react
 import InviteStudentsModal from './InviteStudentsModal';
 import LeaveGroupDialog from './LeaveGroupDialog';
 import { useState } from 'react';
+import type { IGroupOwner } from '@/types/groups';
 
 export interface GroupCardProps {
   title: string;
-  owner: string;
+  owner: IGroupOwner;
   coverUrl?: string;
   membersCount?: number;
   modulesCount?: number;
@@ -29,6 +30,9 @@ export default function GroupCard({
 
   // const inviteCode = 'ABC123'; // temporary dummy code — will come from API later
   const isTeacher = role === 'teacher';
+
+  // Get owner name - handle both string and object
+  const ownerName = `${owner.firstName} ${owner.lastName}`;
 
   return (
     <div className="bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
@@ -61,7 +65,7 @@ export default function GroupCard({
         {/* Title & Owner */}
         <div className="space-y-1">
           <h3 className="text-lg font-semibold leading-tight">{title}</h3>
-          <p className="text-xs text-muted-foreground">By Dr. {owner}</p>
+          <p className="text-xs text-muted-foreground">By Dr. {ownerName}</p>
         </div>
 
         {/* Members + Modules */}

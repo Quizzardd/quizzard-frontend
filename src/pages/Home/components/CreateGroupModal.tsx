@@ -103,12 +103,13 @@ export default function CreateGroupModal({ open, onClose }: CreateGroupModalProp
             )}
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-4 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isPending || isSubmitting}
+              className='me-2'
             >
               Cancel
             </Button>
