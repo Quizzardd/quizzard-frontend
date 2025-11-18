@@ -152,15 +152,17 @@ export default function GroupCard({
         {/* Action Buttons */}
         <div className="flex gap-2 pt-1">
           {/* Open Group */}
-          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
-          onClick={()=>navigate(`/groups/${groupId}`)}>
+          <button
+            className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
+            onClick={() => navigate(`/groups/${groupId}`)}
+          >
             Open Group
           </button>
 
           {/* Role-Based Action */}
           {isTeacher ? (
             <button
-              className="w-full bg-secondary text-secondary-foreground font-medium py-2 rounded-lg hover:bg-[var(--secondary-hover)] transition cursor-pointer"
+              className="w-full bg-secondary text-secondary-foreground font-medium py-2 rounded-lg hover:bg-(--secondary-hover) transition cursor-pointer"
               onClick={() => setShowInvite(true)}
             >
               Invite
@@ -171,7 +173,7 @@ export default function GroupCard({
               onClick={() => setShowLeave(true)}
             >
               Leave
-            </button> 
+            </button>
           )}
         </div>
       </div>
@@ -209,7 +211,8 @@ export default function GroupCard({
         <LeaveGroupDialog
           open={showLeave}
           onClose={() => setShowLeave(false)}
-          onConfirm={() => console.log('Leaving group...')}
+          groupId={groupId}
+          groupTitle={title}
         />
       )}
     </div>
