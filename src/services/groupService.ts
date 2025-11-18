@@ -16,3 +16,26 @@ export const createGroup = async (payload: CreateGroupPayload) => {
   const res = await apiClient.post('/groups', payload);
   return res.data.data;
 };
+
+// ----------- UPDATE GROUP -------------------
+export interface UpdateGroupPayload {
+  title?: string;
+  coverUrl?: string;
+}
+
+export const updateGroup = async (groupId: string, payload: UpdateGroupPayload) => {
+  const res = await apiClient.patch(`/groups/${groupId}`, payload);
+  return res.data.data;
+};
+
+// ----------- DELETE GROUP (HARD DELETE) -------------------
+export const deleteGroup = async (groupId: string) => {
+  const res = await apiClient.delete(`/groups/${groupId}/hard`);
+  return res.data;
+};
+
+// ----------- ARCHIVE GROUP (SOFT DELETE) -------------------
+export const archiveGroup = async (groupId: string) => {
+  const res = await apiClient.delete(`/groups/${groupId}`);
+  return res.data;
+};
