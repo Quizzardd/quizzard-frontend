@@ -5,6 +5,8 @@ import {
   getGroupById,
   getUserGroups,
   updateGroup,
+  joinGroup,
+  leaveGroup,
 } from '@/services/groupService';
 import type { CreateGroupPayload, UpdateGroupPayload } from '@/services/groupService';
 import type { IGroupMember } from '@/types/groups';
@@ -182,6 +184,55 @@ export const useArchiveGroup = () => {
     },
     onSuccess: () => {
       toast.success('Group archived successfully!');
+      queryClient.invalidateQueries({ queryKey: ['my-groups'] });
+    },
+  });
+};
+
+// -------------------- JOIN GROUP -------------------
+export const useJoinGroup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: joinGroup,
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, 'Failed to join group'));
+    },
+    onSuccess: () => {
+      toast.success('Successfully joined the group!');
+      queryClient.invalidateQueries({ queryKey: ['my-groups'] });
+    },
+  });
+};
+
+// -------------------- LEAVE GROUP -------------------
+export const useLeaveGroup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: leaveGroup,
+    onMutate: async (groupId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['my-groups'] });
+
+      const previousGroups = queryClient.getQueryData(['my-groups']);
+
+      // Optimistically remove the group
+      queryClient.setQueryData<IGroupMember[]>(['my-groups'], (old) => {
+        if (!old) return old;
+        return old.filter((item) => item.group._id !== groupId);
+      });
+
+      return { previousGroups };
+    },
+    onError: (err: unknown, _groupId, context) => {
+      toast.error(getApiErrorMessage(err, 'Failed to leave group'));
+
+      if (context?.previousGroups) {
+        queryClient.setQueryData(['my-groups'], context.previousGroups);
+      }
+    },
+    onSuccess: () => {
+      toast.success('You have left the group');
       queryClient.invalidateQueries({ queryKey: ['my-groups'] });
     },
   });

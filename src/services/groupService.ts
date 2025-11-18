@@ -45,3 +45,15 @@ export const archiveGroup = async (groupId: string) => {
   const res = await apiClient.delete(`/groups/${groupId}`);
   return res.data;
 };
+
+// ----------- JOIN GROUP WITH INVITE CODE -------------------
+export const joinGroup = async (inviteCode: string) => {
+  const res = await apiClient.post('/groups/join', { inviteCode });
+  return res.data.data;
+};
+
+// ----------- LEAVE GROUP -------------------
+export const leaveGroup = async (groupId: string) => {
+  const res = await apiClient.delete(`/groups/${groupId}/leave`);
+  return res.data;
+};
