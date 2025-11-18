@@ -2,14 +2,16 @@ import { Users, BookOpen, Clock, ShieldCheck, GraduationCap } from 'lucide-react
 import InviteStudentsModal from './InviteStudentsModal';
 import LeaveGroupDialog from './LeaveGroupDialog';
 import { useState } from 'react';
+import type { IGroupOwner } from '@/types/groups';
 
 export interface GroupCardProps {
   title: string;
-  owner: string;
-  coverUrl: string;
-  membersCount: number;
-  modulesCount: number;
+  owner: IGroupOwner;
+  coverUrl?: string;
+  membersCount?: number;
+  modulesCount?: number;
   joinedAt: string;
+  inviteCode?: string;
   role: 'teacher' | 'student';
 }
 
@@ -19,14 +21,18 @@ export default function GroupCard({
   coverUrl,
   membersCount,
   modulesCount,
+  inviteCode,
   joinedAt,
   role,
 }: GroupCardProps) {
   const [showInvite, setShowInvite] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
 
-  const inviteCode = 'ABC123'; // temporary dummy code — will come from API later
+  // const inviteCode = 'ABC123'; // temporary dummy code — will come from API later
   const isTeacher = role === 'teacher';
+
+  // Get owner name - handle both string and object
+  const ownerName = `${owner.firstName} ${owner.lastName}`;
 
   return (
     <div className="bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
@@ -59,7 +65,7 @@ export default function GroupCard({
         {/* Title & Owner */}
         <div className="space-y-1">
           <h3 className="text-lg font-semibold leading-tight">{title}</h3>
-          <p className="text-xs text-muted-foreground">By Dr. {owner}</p>
+          <p className="text-xs text-muted-foreground">By Dr. {ownerName}</p>
         </div>
 
         {/* Members + Modules */}
@@ -84,21 +90,21 @@ export default function GroupCard({
         {/* Action Buttons */}
         <div className="flex gap-2 pt-1">
           {/* Open Group */}
-          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition">
+          <button className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer">
             Open Group
           </button>
 
           {/* Role-Based Action */}
           {isTeacher ? (
             <button
-              className="w-full bg-secondary text-secondary-foreground font-medium py-2 rounded-lg hover:bg-[var(--secondary-hover)] transition"
+              className="w-full bg-secondary text-secondary-foreground font-medium py-2 rounded-lg hover:bg-[var(--secondary-hover)] transition cursor-pointer"
               onClick={() => setShowInvite(true)}
             >
               Invite
             </button>
           ) : (
             <button
-              className="w-full border border-destructive text-destructive font-medium py-2 rounded-lg hover:bg-destructive/10"
+              className="w-full border border-destructive text-destructive font-medium py-2 rounded-lg hover:bg-destructive/10 cursor-pointer"
               onClick={() => setShowLeave(true)}
             >
               Leave
@@ -107,11 +113,13 @@ export default function GroupCard({
         </div>
       </div>
       {/* Modals */}
-      <InviteStudentsModal
-        open={showInvite}
-        onClose={() => setShowInvite(false)}
-        inviteCode={inviteCode}
-      />
+      {isTeacher && (
+        <InviteStudentsModal
+          open={showInvite}
+          onClose={() => setShowInvite(false)}
+          inviteCode={inviteCode}
+        />
+      )}
 
       <LeaveGroupDialog
         open={showLeave}
