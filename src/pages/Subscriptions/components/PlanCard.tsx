@@ -3,11 +3,12 @@ import type { JSX } from 'react';
 
 interface PlanCardProps {
   plan: IPlan;
+  currentPlanId?: string; // The user's current subscription plan ID
 }
 
-export function PlanCard({ plan }: PlanCardProps): JSX.Element {
+export function PlanCard({ plan, currentPlanId }: PlanCardProps): JSX.Element {
   const isFree = !plan.price || plan.price === 0;
-  const isActive = plan.isActive;
+  const isCurrentPlan = currentPlanId === plan._id; // User's active subscription
   const isPro = plan.name.toLowerCase().includes('pro');
   const isPlus = plan.name.toLowerCase().includes('plus');
 
@@ -15,7 +16,7 @@ export function PlanCard({ plan }: PlanCardProps): JSX.Element {
     <div
       key={plan._id.toString()}
       className={`relative flex flex-col justify-between rounded-2xl border bg-card text-card-foreground shadow-sm transition hover:shadow-md ${
-        isActive ? 'border-primary ring-1 ring-primary/20' : 'border-border'
+        isCurrentPlan ? 'border-primary ring-1 ring-primary/20' : 'border-border'
       }`}
     >
       {/* Optional badge for most popular plan */}
@@ -28,7 +29,7 @@ export function PlanCard({ plan }: PlanCardProps): JSX.Element {
       {/* Header */}
       <div className="p-6">
         <h3 className="text-lg font-semibold capitalize">{plan.name}</h3>
-        <p className="text-sm text-muted-foreground">{plan.monthlyTokens} tokens/month</p>
+        <p className="text-sm text-muted-foreground">{plan.credits} credits/month</p>
       </div>
 
       {/* Body */}
@@ -39,12 +40,12 @@ export function PlanCard({ plan }: PlanCardProps): JSX.Element {
         </div>
 
         {/* Dynamic Features */}
-        {plan.features?.length > 0 && (
+        {plan.feature?.length > 0 && (
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            {plan.features.map((feature, index) => (
+            {plan.feature.map((feat, index) => (
               <li key={index} className="flex items-start gap-2">
                 <span className="text-green-500">✓</span>
-                {feature}
+                {feat}
               </li>
             ))}
           </ul>
@@ -53,10 +54,10 @@ export function PlanCard({ plan }: PlanCardProps): JSX.Element {
         {/* Button pinned to bottom */}
         <div className="mt-auto pt-6">
           <button
-            disabled={isActive}
+            disabled={isCurrentPlan || isFree}
             className={`w-full rounded-lg py-2.5 font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2
               ${
-                isActive
+                isCurrentPlan || isFree
                   ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
                   : isPro
                     ? 'bg-[#9333ea] text-white hover:bg-[#7e22ce] cursor-pointer'
@@ -65,7 +66,7 @@ export function PlanCard({ plan }: PlanCardProps): JSX.Element {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 cursor-pointer'
               }`}
           >
-            {isActive ? 'Current Plan' : isFree ? 'Get Started' : `Upgrade to ${plan.name}`}
+            {isCurrentPlan ? 'Current Plan' : isFree ? 'Free' : `Upgrade to ${plan.name}`}
           </button>
         </div>
       </div>

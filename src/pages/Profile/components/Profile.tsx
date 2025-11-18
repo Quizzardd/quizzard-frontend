@@ -116,159 +116,225 @@ export default function Profile() {
     });
   };
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading profile...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 shadow-sm m-4 space-y-10">
-      <h3 className="text-xl font-semibold text-foreground">Profile Information</h3>
+    <div className="mx-auto m-6 space-y-6">
+      {/* Profile Information Card */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        {/* Header Section with Gradient */}
+        <div className="bg-linear-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b border-border">
+          <h2 className="text-2xl font-bold text-foreground">Profile Information</h2>
+          <p className="text-sm text-muted-foreground mt-1">Manage your personal information</p>
+        </div>
 
-      {/* -----------------------------
-          PROFILE IMAGE
-      ------------------------------*/}
-      <div className="flex items-center gap-6">
-        <img
-          src={photoPreview}
-          alt="Profile"
-          className="w-20 h-20 rounded-full object-cover border border-border"
-        />
+        <div className="p-6 space-y-8">
+          {/* -----------------------------
+              PROFILE IMAGE
+          ------------------------------*/}
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <img
+                src={photoPreview}
+                alt="Profile"
+                className="w-24 h-24 rounded-full object-cover border-2 border-border shadow-md transition group-hover:border-primary"
+              />
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                <Camera className="w-6 h-6 text-white" />
+              </div>
+            </div>
 
-        <div className="space-y-1">
-          <label
-            htmlFor="photo"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline cursor-pointer"
-          >
-            <Camera className="w-4 h-4" />
-            Change Photo
-          </label>
-          <input
-            id="photo"
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            className="hidden"
-          />
-          <p className="text-xs text-muted-foreground">JPG, GIF, PNG. Max size 2MB.</p>
+            <div className="space-y-2">
+              <label
+                htmlFor="photo"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition cursor-pointer"
+              >
+                <Camera className="w-4 h-4" />
+                Change Photo
+              </label>
+              <input
+                id="photo"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+              <p className="text-xs text-muted-foreground">JPG, GIF, PNG. Max size 2MB.</p>
+            </div>
+          </div>
+
+          {/* -----------------------------
+              PROFILE FORM
+          ------------------------------*/}
+          <form onSubmit={handleSubmit(onSubmitProfile)} className="space-y-6">
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-foreground">Personal Details</h3>
+              <p className="text-sm text-muted-foreground">Update your personal information</p>
+            </div>
+
+            {/* First & Last Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register('firstName')}
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                  placeholder="Enter first name"
+                />
+                {errors.firstName && (
+                  <p className="text-xs text-red-500 mt-1.5">{errors.firstName.message}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register('lastName')}
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                  placeholder="Enter last name"
+                />
+                {errors.lastName && (
+                  <p className="text-xs text-red-500 mt-1.5">{errors.lastName.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-foreground">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...register('email')}
+                className="w-full md:w-1/2 rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                placeholder="your.email@example.com"
+              />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-1.5">{errors.email.message}</p>
+              )}
+            </div>
+
+            {/* Phone - Age - Gender */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground">
+                  Phone Number
+                </label>
+                <input
+                  {...register('phone')}
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground">Age</label>
+                <input
+                  type="number"
+                  {...register('age')}
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                  placeholder="25"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground">Gender</label>
+                <select
+                  {...register('gender')}
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition cursor-pointer"
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="pt-4 flex gap-3">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => reset()}
+                className="px-6 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 cursor-pointer"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      <hr className="border-border" />
-
-      {/* -----------------------------
-          PROFILE FORM
-      ------------------------------*/}
-      <form onSubmit={handleSubmit(onSubmitProfile)} className="space-y-6">
-        {/* First & Last Name */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">First Name</label>
-            <input
-              {...register('firstName')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {errors.firstName && (
-              <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Last Name</label>
-            <input
-              {...register('lastName')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {errors.lastName && (
-              <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>
-            )}
-          </div>
+      {/* Change Password Card */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-linear-to-r from-orange-500/10 via-orange-500/5 to-transparent p-6 border-b border-border">
+          <h2 className="text-2xl font-bold text-foreground">Security</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Update your password to keep your account secure
+          </p>
         </div>
 
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Email Address</label>
-          <input
-            {...register('email')}
-            className="w-full md:w-1/2 rounded-lg border border-input bg-background px-3 py-2 text-sm"
-          />
-          {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+        <div className="p-6">
+          <form onSubmit={handleSubmitPwd(onSubmitPassword)} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-foreground">
+                Current Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                {...registerPwd('currentPassword')}
+                className="w-full md:w-1/2 rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                placeholder="Enter current password"
+              />
+              {pwdErrors.currentPassword && (
+                <p className="text-xs text-red-500 mt-1.5">{pwdErrors.currentPassword.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-foreground">
+                New Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                {...registerPwd('newPassword')}
+                className="w-full md:w-1/2 rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                placeholder="Enter new password (min. 8 characters)"
+              />
+              {pwdErrors.newPassword && (
+                <p className="text-xs text-red-500 mt-1.5">{pwdErrors.newPassword.message}</p>
+              )}
+            </div>
+            <div className="pt-2 flex gap-3">
+              <button
+                type="submit"
+                disabled={isPwdSubmitting}
+                className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                {isPwdSubmitting ? 'Updating Password...' : 'Update Password'}
+              </button>
+              <button
+                type="button"
+                onClick={() => resetPasswordForm()}
+                className="px-6 py-2.5 rounded-lg bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* Phone - Age - Gender */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
-            <input
-              {...register('phone')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Age</label>
-            <input
-              type="number"
-              {...register('age')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Gender</label>
-            <select
-              {...register('gender')}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Submit */}
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
-          >
-            {isSubmitting ? 'Updating...' : 'Update Profile'}
-          </button>
-        </div>
-      </form>
-
-      {/* -----------------------------
-          CHANGE PASSWORD FORM
-      ------------------------------*/}
-      <div className="pt-6 border-t border-border space-y-6">
-        <h3 className="text-lg font-semibold">Change Password</h3>
-        <form onSubmit={handleSubmitPwd(onSubmitPassword)} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Current Password</label>
-            <input
-              type="password"
-              {...registerPwd('currentPassword')}
-              className="w-full md:w-1/2 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {pwdErrors.currentPassword && (
-              <p className="text-xs text-red-500 mt-1">{pwdErrors.currentPassword.message}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">New Password</label>
-            <input
-              type="password"
-              {...registerPwd('newPassword')}
-              className="w-full md:w-1/2 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            {pwdErrors.newPassword && (
-              <p className="text-xs text-red-500 mt-1">{pwdErrors.newPassword.message}</p>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isPwdSubmitting}
-            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
-          >
-            {isPwdSubmitting ? 'Updating...' : 'Change Password'}
-          </button>
-        </form>
       </div>
     </div>
   );

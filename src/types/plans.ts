@@ -1,10 +1,13 @@
-
 export interface IPlan {
   _id: string;
   name: string;
-  monthlyTokens: number;
-  price?: number;
-  description?: string;
+  price: number;
+  stripePriceId: string;
+  credits: number;
+  description: string;
+  feature: string[];
   isActive: boolean;
-  features: string[];
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
 }
