@@ -2,6 +2,7 @@ import {
   archiveGroup,
   createGroup,
   deleteGroup,
+  getGroupById,
   getUserGroups,
   updateGroup,
 } from '@/services/groupService';
@@ -16,6 +17,14 @@ export const useUserGroups = () => {
   return useQuery({
     queryKey: ['my-groups'],
     queryFn: getUserGroups,
+  });
+};
+
+export const useGroupById = (groupId: string) => {
+  return useQuery({
+    queryKey: ['group', groupId],
+    queryFn: () => getGroupById(groupId),
+    enabled: !!groupId,
   });
 };
 

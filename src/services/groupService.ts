@@ -6,6 +6,12 @@ export const getUserGroups = async () => {
   return res.data.data; // array of groups + role
 };
 
+export const getGroupById = async (groupId: string) => {
+  console.log('group id: ', groupId);
+  const res = await apiClient.get(`/groups/${groupId}`);
+  return res.data.data;
+};
+
 // ----------- CREATE GROUP -------------------
 export interface CreateGroupPayload {
   title: string;
