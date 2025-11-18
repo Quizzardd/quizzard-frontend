@@ -2,13 +2,40 @@ import apiClient from '@/config/axiosConfig';
 
 // ----------- GET USER GROUPS -------------------
 export const getUserGroups = async () => {
-  const res = await apiClient.get('/users/me');
-  console.log(res.data);
+  const res = await apiClient.get('/groups/me');
   return res.data.data; // array of groups + role
 };
 
-export const getGroupById = async (groupId: string) => {
-  console.log('groub id: ', groupId);
-  const res = await apiClient.get(`/groups/${groupId}`);
+// ----------- CREATE GROUP -------------------
+export interface CreateGroupPayload {
+  title: string;
+  coverUrl?: string;
+}
+
+export const createGroup = async (payload: CreateGroupPayload) => {
+  const res = await apiClient.post('/groups', payload);
   return res.data.data;
+};
+
+// ----------- UPDATE GROUP -------------------
+export interface UpdateGroupPayload {
+  title?: string;
+  coverUrl?: string;
+}
+
+export const updateGroup = async (groupId: string, payload: UpdateGroupPayload) => {
+  const res = await apiClient.patch(`/groups/${groupId}`, payload);
+  return res.data.data;
+};
+
+// ----------- DELETE GROUP (HARD DELETE) -------------------
+export const deleteGroup = async (groupId: string) => {
+  const res = await apiClient.delete(`/groups/${groupId}/hard`);
+  return res.data;
+};
+
+// ----------- ARCHIVE GROUP (SOFT DELETE) -------------------
+export const archiveGroup = async (groupId: string) => {
+  const res = await apiClient.delete(`/groups/${groupId}`);
+  return res.data;
 };

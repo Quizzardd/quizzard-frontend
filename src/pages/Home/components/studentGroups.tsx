@@ -1,41 +1,16 @@
 import GroupCard from './GroupCard';
-import  { GroupsListSkeleton } from './GroupsSkeleton';
+import { GroupsListSkeleton } from './GroupsSkeleton';
 import { useUserGroups } from '@/hooks/UseGroup';
+import type { IGroupMember } from '@/types/groups';
 
 export default function StudentGroups() {
   const { data, isLoading } = useUserGroups();
 
   if (isLoading) {
-      return <GroupsListSkeleton />;
-}
+    return <GroupsListSkeleton />;
+  }
 
-    //const student = data?.filter((item: any) => item.role === 'student') || [];
-    const student = [
-      {
-        group: {
-          title: 'JavaScript Bootcamp',
-          owner: 'Sara',
-          image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
-          url: '/g/js-bootcamp',
-          membersCount: 40,
-          modulesCount: 18,
-        },
-        role: 'student',
-        joinedAt: '2025-01-12T10:00:00Z',
-      },
-      {
-        group: {
-          title: 'Beginner Python',
-          owner: 'Laila',
-          image: 'https://images.unsplash.com/photo-1518770660439-4636190af475',
-          url: '/g/python-beginner',
-          membersCount: 60,
-          modulesCount: 14,
-        },
-        role: 'student',
-        joinedAt: '2025-03-02T10:00:00Z',
-      },
-    ];
+  const student = data?.filter((item: IGroupMember) => item.role === 'student') || [];
 
   if (student.length === 0) {
     return <p className="text-muted-foreground text-sm">No enrolled groups yet.</p>;
@@ -46,12 +21,13 @@ export default function StudentGroups() {
       <h2 className="text-xl font-semibold">Enrolled Groups</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {student.map((item: any) => (
+        {student.map((item: IGroupMember) => (
           <GroupCard
-            key={item.group.url}
+            key={item._id}
+            groupId={item.group._id}
             title={item.group.title}
             owner={item.group.owner}
-            coverUrl={item.group.image}
+            coverUrl={item.group.coverUrl}
             membersCount={item.group.membersCount}
             modulesCount={item.group.modulesCount}
             joinedAt={item.joinedAt}

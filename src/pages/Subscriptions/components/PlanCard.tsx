@@ -59,10 +59,10 @@ export function PlanCard({ plan }: PlanCardProps): JSX.Element {
                 isActive
                   ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
                   : isPro
-                    ? 'bg-[#9333ea] text-white hover:bg-[#7e22ce]'
+                    ? 'bg-[#9333ea] text-white hover:bg-[#7e22ce] cursor-pointer'
                     : isPlus
-                      ? 'bg-primary text-primary-foreground hover:bg-blue-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200'
+                      ? 'bg-primary text-primary-foreground hover:bg-blue-700 cursor-pointer'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 cursor-pointer'
               }`}
           >
             {isActive ? 'Current Plan' : isFree ? 'Get Started' : `Upgrade to ${plan.name}`}

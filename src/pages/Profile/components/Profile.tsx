@@ -226,7 +226,7 @@ export default function Profile() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2"
+            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
           >
             {isSubmitting ? 'Updating...' : 'Update Profile'}
           </button>
@@ -264,7 +264,7 @@ export default function Profile() {
           <button
             type="submit"
             disabled={isPwdSubmitting}
-            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2"
+            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
           >
             {isPwdSubmitting ? 'Updating...' : 'Change Password'}
           </button>

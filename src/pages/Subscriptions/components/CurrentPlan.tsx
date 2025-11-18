@@ -6,7 +6,7 @@ interface CurrentPlanProps {
 }
 
 function CurrentPlan({ subscription }: CurrentPlanProps): JSX.Element {
-  const plan = subscription.plan ; // cast if populated plan is an object
+  const plan = subscription.plan; // cast if populated plan is an object
   const isFree = !plan?.price || plan?.price === 0;
 
   const usedTokens = subscription.tokensAllocated - subscription.tokensRemaining;
@@ -73,7 +73,7 @@ function CurrentPlan({ subscription }: CurrentPlanProps): JSX.Element {
         </p>
 
         {!isFree && (
-          <button className="rounded-md border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition">
+          <button className="rounded-md border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition cursor-pointer">
             Manage Billing
           </button>
         )}
