@@ -12,3 +12,4 @@ export * from './comments';
 export * from './tokenLedger';
 export * from './invites';
 export * from './registerPayload';
+export * from './chat';
