@@ -17,9 +17,9 @@ type AuthState = {
 };
 
 const initialState: AuthState = {
-  token: localStorage.getItem('userToken') || null,
+  token: null,
   user: null,
-  isAuthenticated: !!localStorage.getItem('userToken'),
+  isAuthenticated: false,
   isLoading: false,
   error: null,
 };
@@ -66,9 +66,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem('userToken');
       if (token) {
         try {
+          dispatch({ type: AUTH_ACTIONS.LOGIN_START });
           const user = await authService.getUser(token);
-          dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
-          console.log('✅ User loaded on app start:', user.data);
+          if (user) {
+            dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
+          }
         } catch (error) {
           console.log(error);
           toast.error(getApiErrorMessage(error, 'Failed to load user'));
