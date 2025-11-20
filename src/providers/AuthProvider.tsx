@@ -66,8 +66,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem('userToken');
       if (token) {
         try {
-          dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
-          toast.success('Logged in successfully');
+          const user = await authService.getUser(token);
+          dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
+          console.log('✅ User loaded on app start:', user.data);
         } catch (error) {
           console.log(error);
           toast.error(getApiErrorMessage(error, 'Failed to load user'));
@@ -85,8 +86,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const token = await authService.login(email, password);
       localStorage.setItem('userToken', token);
 
-      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token } });
+      const user = await authService.getUser(token);
+      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
       toast.success('Logged in successfully');
+
       return { success: true };
     } catch (error) {
       const message = getApiErrorMessage(error, 'Login failed');

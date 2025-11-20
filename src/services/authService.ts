@@ -15,6 +15,14 @@ export const authService = {
   logout: async () => {
     await apiClient.post('/users/logout');
   },
+  getUser: async (token: string) => {
+    const res = await apiClient.get('/users', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  },
   getProfile: async (token: string | null) => {
     const res = await apiClient.get('/users', {
       headers: {
