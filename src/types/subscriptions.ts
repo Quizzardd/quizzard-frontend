@@ -6,15 +6,15 @@ export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
 export interface ISubscription {
   _id: string;
   user: string | IUser;
-  plan: IPlan;
+  plan: string | IPlan;
   status: SubscriptionStatus;
-  startDate: Date;
-  endDate: Date;
-  nextRenewal?: Date;
-  autoRenew: boolean;
-  tokensAllocated: number;
-  tokensRemaining: number;
-  lastTokenReset: Date;
-  paymentReference?: string;
-  createdAt: Date;
+  startDate: string | Date;
+  endDate: string | Date;
+  stripeSubscriptionId?: string;
+  isActive: boolean;
+  creditsAllocated: number;
+  creditsUsed: number;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+  __v?: number;
 }
