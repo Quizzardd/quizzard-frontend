@@ -10,7 +10,7 @@ type ProtectedRouteProps = {
 export const ProtectedRoute = ({ allowedRoles, redirectTo = ROUTES.AUTH }: ProtectedRouteProps) => {
   const { isAuthenticated, user, isLoading } = useAuth();
 
-  console.log('ProtectedRoute - isAuthenticated:', isAuthenticated);
+  console.log('ProtectedRoute - isAuthenticated:', isAuthenticated, user?.role);
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -24,7 +24,6 @@ export const ProtectedRoute = ({ allowedRoles, redirectTo = ROUTES.AUTH }: Prote
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Check role-based access
   if (allowedRoles && user) {
     const hasRequiredRole = allowedRoles.includes(user.role);
     if (!hasRequiredRole) {
