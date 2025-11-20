@@ -1,64 +1,40 @@
 import { useState } from 'react';
+import { usePlans, useDeletePlan } from '@/hooks/usePlans';
 import type { IPlan } from '@/types';
 import { AdminPlansGrid } from './AdminPlansGridProps ';
+import { UpdatePlanDialog } from './UpdatePlanDialog';
 
 export default function AdminPlansPage() {
-  const [plans, setPlans] = useState<IPlan[]>([
-    {
-      _id: '1',
-      name: 'Free',
-      monthlyTokens: 50,
-      description: 'Basic access to AI tools',
-      features: [
-        'Create up to 3 classrooms',
-        '50 AI tokens per month',
-        'Basic quiz generation',
-        'Email support',
-      ],
-      isActive: true,
-    },
-    {
-      _id: '2',
-      name: 'Plus',
-      monthlyTokens: 1000,
-      price: 9.99,
-      description: 'Standard for regular teachers',
-      features: [
-        'Unlimited classrooms',
-        '1000 AI tokens per month',
-        'Advanced quiz generation',
-        'AI explanations for students',
-        'Priority support',
-        'Analytics dashboard',
-      ],
-      isActive: false,
-    },
-    {
-      _id: '3',
-      name: 'Pro',
-      monthlyTokens: 2500,
-      price: 24.99,
-      description: 'High-usage tier for power users',
-      features: [
-        'Everything in Plus',
-        '2500 AI tokens per month',
-        'Custom AI model training',
-        'Bulk quiz generation',
-        'Advanced analytics',
-        'API access',
-        'Dedicated support',
-      ],
-      isActive: false,
-    },
-  ]);
+  const { data: plans, isLoading } = usePlans();
+  const deletePlanMutation = useDeletePlan();
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<IPlan | null>(null);
 
   const handleDelete = (id: string) => {
-    setPlans((prev) => prev.filter((p) => p._id !== id));
+    deletePlanMutation.mutate(id);
   };
 
   const handleUpdate = (plan: IPlan) => {
-    console.log('Update plan:', plan);
+    setSelectedPlan(plan);
+    setUpdateDialogOpen(true);
   };
 
-  return <AdminPlansGrid plans={plans} onDelete={handleDelete} onUpdate={handleUpdate} />;
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading plans...</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <AdminPlansGrid plans={plans || []} onDelete={handleDelete} onUpdate={handleUpdate} />
+      <UpdatePlanDialog
+        plan={selectedPlan}
+        open={updateDialogOpen}
+        onOpenChange={setUpdateDialogOpen}
+      />
+    </>
+  );
 }

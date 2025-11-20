@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Users, Book, FileText, CreditCard } from 'lucide-react';
+import { Users, BookOpen, CreditCard, Activity } from 'lucide-react';
+import type { IPlan } from '@/types';
 import {
   LineChart,
   Line,
@@ -9,44 +10,58 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
+import { useDailyLoginStats, usePlatformOverview } from '@/hooks/useAdmin';
+import { useAdminGroups } from '@/hooks/useAdmin';
+import { usePlans } from '@/hooks/usePlans';
 
-type DashboardProps = {
-  studentsCount: number;
-  teachersCount: number;
-  coursesCount: number;
-  activeSubscriptions: number;
-  activityData: { date: string; logins: number; newCourses: number }[];
-};
+export function AdminDashboard() {
+  const { data: overview, isLoading: overviewLoading } = usePlatformOverview();
+  const { data: loginStats, isLoading: statsLoading } = useDailyLoginStats({ limit: 30 });
+  const { data: groups } = useAdminGroups();
+  const { data: plans } = usePlans();
 
-export function AdminDashboard({
-  studentsCount,
-  teachersCount,
-  coursesCount,
-  activeSubscriptions,
-  activityData,
-}: DashboardProps) {
+  // Transform login stats for the chart
+  const activityData =
+    loginStats?.stats.map((stat) => ({
+      date: new Date(stat.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      logins: stat.totalLogins,
+      uniqueUsers: stat.uniqueUsers,
+    })) || [];
+
   const stats = [
     {
-      title: 'Students',
-      count: studentsCount,
+      title: 'Total Users',
+      count: overview?.totalUsers || 0,
       icon: <Users className="w-6 h-6 text-secondary-foreground" />,
+      subtitle: `${overview?.activeUsers || 0} active`,
     },
     {
-      title: 'Teachers',
-      count: teachersCount,
-      icon: <Book className="w-6 h-6 text-secondary-foreground" />,
+      title: 'Total Groups',
+      count: groups?.length || 0,
+      icon: <BookOpen className="w-6 h-6 text-secondary-foreground" />,
+      subtitle: 'All groups',
     },
     {
-      title: 'Courses',
-      count: coursesCount,
-      icon: <FileText className="w-6 h-6 text-secondary-foreground" />,
+      title: "Today's Logins",
+      count: overview?.todayLogins || 0,
+      icon: <Activity className="w-6 h-6 text-secondary-foreground" />,
+      subtitle: 'Active today',
     },
     {
-      title: 'Active Subscriptions',
-      count: activeSubscriptions,
+      title: 'Total Plans',
+      count: plans?.length || 0,
       icon: <CreditCard className="w-6 h-6 text-secondary-foreground" />,
+      subtitle: `${plans?.filter((plan: { isActive: boolean }) => plan.isActive).length || 0} active`,
     },
   ];
+
+  if (overviewLoading || statsLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -57,12 +72,13 @@ export function AdminDashboard({
             key={stat.title}
             className="bg-card text-card-foreground border border-border shadow-none transition-colors hover:shadow-md"
           >
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex items-center justify-between p-6">
               <div>
                 <p className="text-muted-foreground text-sm">{stat.title}</p>
-                <p className="font-bold text-lg">{stat.count}</p>
+                <p className="font-bold text-2xl mt-1">{stat.count}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
               </div>
-              <div className="p-2 rounded-lg bg-muted text-muted-foreground">{stat.icon}</div>
+              <div className="p-3 rounded-lg bg-muted text-muted-foreground">{stat.icon}</div>
             </CardContent>
           </Card>
         ))}
@@ -70,32 +86,61 @@ export function AdminDashboard({
 
       {/* Platform Activity Chart */}
       <Card className="bg-card text-card-foreground border border-border shadow-none transition-colors">
-        <CardContent>
-          <p className="text-lg font-semibold mb-4">Platform Activity</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={activityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="date" stroke="var(--foreground)" />
-              <YAxis stroke="var(--foreground)" />
-              <Tooltip
-                contentStyle={{ backgroundColor: 'var(--card)', color: 'var(--card-foreground)' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="logins"
-                stroke="var(--primary)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="newCourses"
-                stroke="var(--secondary)"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-lg font-semibold">Platform Activity</p>
+              <p className="text-sm text-muted-foreground mt-1">Last 30 days login statistics</p>
+            </div>
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-primary"></div>
+                <span className="text-muted-foreground">Total Logins</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+                <span className="text-muted-foreground">Unique Users</span>
+              </div>
+            </div>
+          </div>
+
+          {activityData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={activityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" stroke="var(--foreground)" fontSize={12} />
+                <YAxis stroke="var(--foreground)" fontSize={12} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    color: 'var(--card-foreground)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="logins"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  name="Total Logins"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="uniqueUsers"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  name="Unique Users"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px]">
+              <p className="text-muted-foreground">No activity data available</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

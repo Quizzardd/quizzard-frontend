@@ -21,9 +21,8 @@ const AdminDashboard = lazy(() =>
   import('@/pages/Admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
 );
 const AdminPlansPage = lazy(() => import('@/pages/Admin/Plans/AdminPlansPage'));
-const AdminTeachers = lazy(() => import('@/pages/Admin/Teachers/AdminTeachers'));
-const AdminStudents = lazy(() => import('@/pages/Admin/Students/AdminStudents'));
-const AdminCourses = lazy(() => import('@/pages/Admin/Courses/AdminCourses'));
+const AdminUsers = lazy(() => import('@/pages/Admin/Students/AdminStudents'));
+const AdminGroups = lazy(() => import('@/pages/Admin/Courses/AdminCourses'));
 const GroupDetails = lazy(() => import('@/pages/GroupDetails'));
 
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -57,25 +56,9 @@ export const routes = (
 
     <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
       <Route path={ROUTES.ADMIN} element={<AdminLayout />}>
-        <Route
-          index
-          element={
-            <AdminDashboard
-              studentsCount={2}
-              teachersCount={3}
-              coursesCount={3}
-              activeSubscriptions={5}
-              activityData={[
-                { date: '2025-11-01', logins: 50, newCourses: 5 },
-                { date: '2025-11-02', logins: 75, newCourses: 8 },
-                { date: '2025-11-03', logins: 60, newCourses: 3 },
-              ]}
-            />
-          }
-        />
-        <Route path={ROUTES.STUDENTS} element={<AdminStudents />} />
-        <Route path={ROUTES.TEACHERS} element={<AdminTeachers />} />
-        <Route path={ROUTES.COURSES} element={<AdminCourses />} />
+        <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="groups" element={<AdminGroups />} />
         <Route path={ROUTES.PLANS} element={<AdminPlansPage />} />
       </Route>
     </Route>
