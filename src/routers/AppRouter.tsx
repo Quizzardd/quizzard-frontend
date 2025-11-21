@@ -6,6 +6,7 @@ import HomePage from '@/pages/Home';
 import { HomeRoute } from './HomeRoute';
 import { AuthRoute } from './AuthRoute';
 import Announcements from '@/pages/GroupDetails/pages/Announcements';
+import Classwork from '@/pages/GroupDetails/pages/Classwrok';
 import People from '@/pages/GroupDetails/pages/People';
 
 // Lazy load layouts
@@ -47,7 +48,7 @@ export const routes = (
         <Route path="/groups/:groupId" element={<GroupDetails />}>
           <Route index element={<Announcements />} />
           <Route path="announcements" element={<Announcements />} />
-          <Route path="classwork" element={<div>Classwork content…</div>} />
+          <Route path="classwork" element={<Classwork />} />
           <Route path="people" element={<People />} />
           <Route path="grades" element={<div>Grades content…</div>} />
         </Route>
