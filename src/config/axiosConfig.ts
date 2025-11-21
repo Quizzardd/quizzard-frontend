@@ -27,7 +27,7 @@ interface RefreshTokenResponse {
 const apiClient: AxiosInstance = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
-    'https://quizard-backend-534916389595.europe-west1.run.app/4/api/v1',
+    'https://quizard-backend-534916389595.europe-west1.run.app/api/v1',
   timeout: 8000,
   headers: {
     'Content-Type': 'application/json',
