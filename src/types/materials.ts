@@ -1,15 +1,12 @@
-
-import type { IWeek } from './weeks';
-import type { IGroup } from './groups';
-
-export type MaterialType = 'pdf' | 'video' | 'link';
+import type { IModule } from './modules';
 
 export interface IMaterial {
   _id: string;
   title?: string;
-  type: MaterialType;
-  week?: string | IWeek;
-  group: string | IGroup;
+  type: 'pdf' | 'video' | 'link' | string; // Backend enum or file extension from MIME type
   url?: string;
-  createdAt: Date;
+  fullName?: string;
+  module: string | IModule;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
