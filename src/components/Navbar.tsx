@@ -1,7 +1,10 @@
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useGetMe } from '@/hooks/useUser';
+import { useRemainingCredits } from '@/hooks/useAICredits';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +14,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ModeToggle } from './ModeToggle';
+import { useNavigate } from 'react-router';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+  const { data: user } = useGetMe();
+  const { data: credits } = useRemainingCredits();
+  const navigate = useNavigate();
+
+  // Get user initials from first and last name
+  const userInitials = user
+    ? `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}`.toUpperCase()
+    : 'U';
+
+  // Calculate credits percentage
+  const creditsPercentage = credits?.creditsAllocated
+    ? (credits.creditsRemaining / credits.creditsAllocated) * 100
+    : 0;
 
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b bg-background text-foreground shadow-sm transition-colors z-20 sticky top-0">
@@ -45,13 +62,34 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Right Section: Notifications + User */}
+      {/* Right Section: AI Tokens + Notifications + User */}
       <div className="flex items-center gap-5">
-        {/* Notification Icon */}
-        <div className="relative">
-          <Bell className="h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
-          <span className="absolute -top-1 -right-1 bg-destructive h-2.5 w-2.5 rounded-full" />
+        {/* AI Tokens Progress */}
+        <div className="hidden md:flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 min-w-[160px]">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-foreground">
+                {credits?.creditsRemaining ?? 0} / {credits?.creditsAllocated ?? 0}
+              </span>
+            </div>
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  creditsPercentage > 50
+                    ? 'bg-green-500'
+                    : creditsPercentage > 20
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500'
+                }`}
+                style={{ width: `${creditsPercentage}%` }}
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Notification Icon */}
+
         <ModeToggle />
 
         {/* User Dropdown */}
@@ -59,9 +97,14 @@ export default function Navbar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="rounded-full bg-accent text-accent-foreground font-semibold hover:bg-accent/80 h-9 w-9 flex items-center justify-center transition-colors"
+              className="rounded-full h-9 w-9 p-0 hover:bg-accent/80 transition-colors"
             >
-              AD
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user?.photoURL} alt={`${user?.firstName} ${user?.lastName}`} />
+                <AvatarFallback className="bg-accent text-accent-foreground font-semibold">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -70,7 +113,37 @@ export default function Navbar() {
           >
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
+
+            {/* AI Tokens in mobile */}
+            <div className="md:hidden px-2 py-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <Sparkles className="h-3 w-3" />
+                <span>AI Tokens</span>
+              </div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium">
+                  {credits?.creditsRemaining ?? 0} / {credits?.creditsAllocated ?? 0}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {creditsPercentage.toFixed(0)}%
+                </span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    creditsPercentage > 50
+                      ? 'bg-green-500'
+                      : creditsPercentage > 20
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
+                  }`}
+                  style={{ width: `${creditsPercentage}%` }}
+                />
+              </div>
+            </div>
+            <DropdownMenuSeparator className="md:hidden" />
+
+            <DropdownMenuItem onClick={() => navigate('/profile')}>Profile</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
