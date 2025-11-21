@@ -1,5 +1,9 @@
 import type { IPlan } from '@/types';
 import type { JSX } from 'react';
+import { useState } from 'react';
+import { checkout, downgradeToFreePlan } from '@/services/subscriptionService';
+import { toast } from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PlanCardProps {
   plan: IPlan;
@@ -7,10 +11,50 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ plan, currentPlanId }: PlanCardProps): JSX.Element {
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const isFree = !plan.price || plan.price === 0;
   const isCurrentPlan = currentPlanId === plan._id; // User's active subscription
   const isPro = plan.name.toLowerCase().includes('pro');
   const isPlus = plan.name.toLowerCase().includes('plus');
+
+  const handleSubscribe = async () => {
+    if (isCurrentPlan || isLoading) return;
+
+    try {
+      setIsLoading(true);
+
+      // If it's a free plan, downgrade
+      if (isFree) {
+        toast.loading('Switching to free plan...');
+        await downgradeToFreePlan(plan._id);
+        toast.dismiss();
+        toast.success('Successfully downgraded to free plan!');
+        // Invalidate subscription query to refresh data
+        queryClient.invalidateQueries({ queryKey: ['my-subscription'] });
+      } else {
+        // For paid plans, redirect to Stripe
+        toast.loading('Redirecting to Stripe checkout...');
+        const response = await checkout(plan._id);
+
+        if (response.url) {
+          // Redirect to Stripe checkout
+          window.location.href = response.url;
+        } else {
+          toast.dismiss();
+          toast.error('Failed to initiate checkout. Please try again.');
+        }
+      }
+    } catch (error: unknown) {
+      console.error('Subscription error:', error);
+      toast.dismiss();
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to process subscription change';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div
@@ -54,19 +98,28 @@ export function PlanCard({ plan, currentPlanId }: PlanCardProps): JSX.Element {
         {/* Button pinned to bottom */}
         <div className="mt-auto pt-6">
           <button
-            disabled={isCurrentPlan || isFree}
+            onClick={handleSubscribe}
+            disabled={isCurrentPlan || isLoading}
             className={`w-full rounded-lg py-2.5 font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2
               ${
-                isCurrentPlan || isFree
+                isCurrentPlan || isLoading
                   ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400'
                   : isPro
                     ? 'bg-[#9333ea] text-white hover:bg-[#7e22ce] cursor-pointer'
                     : isPlus
                       ? 'bg-primary text-primary-foreground hover:bg-blue-700 cursor-pointer'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 cursor-pointer'
+                      : isFree
+                        ? 'bg-gray-700 text-white hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 cursor-pointer'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 cursor-pointer'
               }`}
           >
-            {isCurrentPlan ? 'Current Plan' : isFree ? 'Free' : `Upgrade to ${plan.name}`}
+            {isLoading
+              ? 'Processing...'
+              : isCurrentPlan
+                ? 'Current Plan'
+                : isFree
+                  ? 'Downgrade to Free'
+                  : `Upgrade to ${plan.name}`}
           </button>
         </div>
       </div>
