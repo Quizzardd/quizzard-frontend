@@ -15,6 +15,8 @@ const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 
 // Lazy load pages
 const SubscriptionPage = lazy(() => import('@/pages/Subscriptions'));
+const SubscriptionSuccess = lazy(() => import('@/pages/Subscriptions/SubscriptionSuccess'));
+const SubscriptionFail = lazy(() => import('@/pages/Subscriptions/SubscriptionFail'));
 const ProfilePage = lazy(() => import('@/pages/Profile'));
 
 // Lazy load admin pages
@@ -39,9 +41,10 @@ export const routes = (
         <Route index element={<HomePage />} />
         <Route path={ROUTES.QUIZZES}>
           <Route index element={<div>Quizzes List</div>} />
-          <Route path=":quizId" element={<div>Quiz Details</div>} />
         </Route>
         <Route path={ROUTES.SUBSCRIPTION} element={<SubscriptionPage />} />
+        <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+        <Route path="/subscription/fail" element={<SubscriptionFail />} />
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.SETTINGS} element={<div>Settings Page</div>} />
 

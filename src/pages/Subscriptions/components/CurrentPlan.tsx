@@ -1,4 +1,4 @@
-import type { ISubscription } from '@/types';
+import type { ISubscription, IPlan } from '@/types';
 import type { JSX } from 'react';
 
 interface CurrentPlanProps {
@@ -6,14 +6,16 @@ interface CurrentPlanProps {
 }
 
 function CurrentPlan({ subscription }: CurrentPlanProps): JSX.Element {
-  const plan = subscription.plan; // cast if populated plan is an object
+  const plan = typeof subscription.plan === 'object' ? subscription.plan : null;
   const isFree = !plan?.price || plan?.price === 0;
 
-  const usedTokens = subscription.tokensAllocated - subscription.tokensRemaining;
+  const creditsRemaining = subscription.creditsAllocated - subscription.creditsUsed;
   const progress =
-    subscription.tokensAllocated > 0 ? (usedTokens / subscription.tokensAllocated) * 100 : 0;
+    subscription.creditsAllocated > 0
+      ? (subscription.creditsUsed / subscription.creditsAllocated) * 100
+      : 0;
 
-  const nextReset = new Date(subscription.nextRenewal || subscription.endDate).toLocaleDateString();
+  const nextReset = new Date(subscription.endDate).toLocaleDateString();
 
   return (
     <div className="w-full rounded-2xl border bg-card text-card-foreground shadow-sm p-6 mb-8">
@@ -21,30 +23,37 @@ function CurrentPlan({ subscription }: CurrentPlanProps): JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <h3 className="text-lg font-semibold">
-            Current Plan: <span className="capitalize text-primary">{plan?.name}</span>
+            Current Plan: <span className="capitalize text-primary">{plan?.name || 'Free'}</span>
           </h3>
           <p className="text-sm text-muted-foreground">
             {isFree ? 'You are using the Free tier' : 'Active paid subscription'}
           </p>
         </div>
 
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${
-            isFree
-              ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-              : 'bg-primary/10 text-primary'
-          }`}
-        >
-          {plan?.name} Plan
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              isFree
+                ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                : 'bg-primary/10 text-primary'
+            }`}
+          >
+            {plan?.name || 'Free'} Plan
+          </span>
+          {!isFree && subscription.isActive && (
+            <span className="rounded-full px-3 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              Auto-renewing
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Tokens Section */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <p className="font-medium text-foreground">AI Tokens Remaining</p>
+          <p className="font-medium text-foreground">AI Credits Remaining</p>
           <p className="text-muted-foreground">
-            {subscription.tokensRemaining} / {subscription.tokensAllocated}
+            {creditsRemaining} / {subscription.creditsAllocated}
           </p>
         </div>
 
@@ -61,22 +70,16 @@ function CurrentPlan({ subscription }: CurrentPlanProps): JSX.Element {
         </p>
       </div>
 
-      {/* Optional Auto-Renew info */}
+      {/* Status info */}
       <div className="mt-4 flex items-center justify-between text-sm">
         <p className="text-muted-foreground">
-          Auto-renew:{' '}
+          Status:{' '}
           <span
-            className={`font-medium ${subscription.autoRenew ? 'text-green-600' : 'text-red-500'}`}
+            className={`font-medium ${subscription.isActive ? 'text-green-600' : 'text-red-500'}`}
           >
-            {subscription.autoRenew ? 'Enabled' : 'Disabled'}
+            {subscription.isActive ? 'Active' : 'Inactive'}
           </span>
         </p>
-
-        {!isFree && (
-          <button className="rounded-md border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition cursor-pointer">
-            Manage Billing
-          </button>
-        )}
       </div>
     </div>
   );
