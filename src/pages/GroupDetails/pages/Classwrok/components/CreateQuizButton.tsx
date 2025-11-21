@@ -1,19 +1,29 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { AIQuizGenerationModal } from './AIQuizGenerationModal';
+import { useModulesByGroup } from '@/hooks/useModule';
+import { useAuth } from '@/hooks/useAuth';
+import type { IModule } from '@/types';
 
-export default function CreateQuizButton() {
-  const handleCreateQuiz = () => {
-    // TODO: Implement quiz creation logic
-    console.log('Creating new quiz...');
-  };
+interface CreateQuizButtonProps {
+  groupId: string;
+}
+
+export default function CreateQuizButton({ groupId }: CreateQuizButtonProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <Button
-      onClick={handleCreateQuiz}
-      className="bg-chart-2 hover:bg-chart-2/90 text-primary-foreground"
-    >
-      <Plus />
-      Create Quiz
-    </Button>
+    <>
+      <Button
+        onClick={() => setIsModalOpen(true)}
+        className="bg-chart-2 hover:bg-chart-2/90 text-primary-foreground"
+      >
+        <Sparkles />
+        Create Quiz with AI
+      </Button>
+
+      <AIQuizGenerationModal open={isModalOpen} onOpenChange={setIsModalOpen} groupId={groupId} />
+    </>
   );
 }

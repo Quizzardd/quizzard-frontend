@@ -12,10 +12,9 @@ const Classwork = () => {
 
   return (
     <div className="space-y-6">
-      {/* Action Buttons */}
       <div className="flex items-center gap-3">
         <CreateModuleButton groupId={groupId!} />
-        <CreateQuizButton />
+        <CreateQuizButton groupId={groupId!} />
       </div>
 
       {/* Modules List */}

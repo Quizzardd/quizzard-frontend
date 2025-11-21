@@ -1,6 +1,6 @@
-import type { IWeek } from './weeks';
 import type { IGroup } from './groups';
 import type { IUser } from './users';
+import type { IModule } from './modules';
 
 export type QuizState = 'draft' | 'published' | 'closed';
 
@@ -8,7 +8,7 @@ export interface IQuiz {
   _id: string;
   title: string;
   description?: string;
-  week?: string | IWeek;
+  module?: string | IModule;
   group: string | IGroup;
   durationMinutes?: number;
   startAt?: Date;
