@@ -1,32 +1,40 @@
-import {  useUserStats } from '@/hooks/useUser';
 import { BookOpen, GraduationCap, Sparkles, Layers } from 'lucide-react';
+import { useUserGroups } from '@/hooks/UseGroup';
+import { useRemainingCredits } from '@/hooks/useAICredits';
+import type { IGroupMember } from '@/types/groups';
 
 export default function StatusCards() {
-  //const { data: user } = useGetMe();
-  const { data: stats, isLoading } = useUserStats();
+  const { data: groups, isLoading: isLoadingGroups } = useUserGroups();
+  const { data: credits, isLoading: isLoadingCredits } = useRemainingCredits();
+
+  // Filter groups by role
+  const teachingCourses = groups?.filter((item: IGroupMember) => item.role === 'teacher') || [];
+  const enrolledCourses = groups?.filter((item: IGroupMember) => item.role === 'student') || [];
 
   const cards = [
     {
       title: 'Teaching Courses',
-      value: stats?.teachingCourses ?? 0,
+      value: teachingCourses.length,
       icon: <BookOpen className="w-6 h-6 text-primary" />,
     },
     {
       title: 'Enrolled Courses',
-      value: stats?.enrolledCourses ?? 0,
+      value: enrolledCourses.length,
       icon: <GraduationCap className="w-6 h-6 text-primary" />,
     },
     {
       title: 'AI Tokens Remaining',
-      value: 88,
+      value: credits?.creditsRemaining ?? 0,
       icon: <Sparkles className="w-6 h-6 text-primary" />,
     },
     {
       title: 'Total Courses',
-      value: (stats?.teachingCourses ?? 0) + (stats?.enrolledCourses ?? 0),
+      value: teachingCourses.length + enrolledCourses.length,
       icon: <Layers className="w-6 h-6 text-primary" />,
     },
   ];
+
+  const isLoading = isLoadingGroups || isLoadingCredits;
 
   if (isLoading) {
     return (

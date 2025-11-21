@@ -130,7 +130,7 @@ export default function EditGroupModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending || isSubmitting} className="cursor-pointer">
+            <Button type="submit" disabled={isPending || isSubmitting} className="cursor-pointer md:ms-2">
               {isPending || isSubmitting ? 'Updating...' : 'Update Group'}
             </Button>
           </DialogFooter>
