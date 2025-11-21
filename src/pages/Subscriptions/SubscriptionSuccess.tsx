@@ -47,7 +47,7 @@ export default function SubscriptionSuccess() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-            <Button onClick={() => navigate('/profile')} variant="outline">
+            <Button onClick={() => navigate('/subscription')} variant="outline">
               View Profile
             </Button>
             <Button onClick={() => navigate('/')}>Go to Dashboard</Button>
