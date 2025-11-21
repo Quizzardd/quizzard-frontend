@@ -13,6 +13,7 @@ export default function SubscriptionSuccess() {
   useEffect(() => {
     // Invalidate subscription query to refresh user's subscription data
     queryClient.invalidateQueries({ queryKey: ['my-subscription'] });
+    queryClient.invalidateQueries({ queryKey: ['ai-credits-remaining'] });
     toast.success('Subscription activated successfully!');
     console.log('Subscription successful');
   }, [queryClient]);

@@ -32,6 +32,7 @@ export function PlanCard({ plan, currentPlanId }: PlanCardProps): JSX.Element {
         toast.success('Successfully downgraded to free plan!');
         // Invalidate subscription query to refresh data
         queryClient.invalidateQueries({ queryKey: ['my-subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['ai-credits-remaining'] });
       } else {
         // For paid plans, redirect to Stripe
         toast.loading('Redirecting to Stripe checkout...');
