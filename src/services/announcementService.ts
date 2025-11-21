@@ -34,7 +34,7 @@ export interface PaginatedAnnouncementsResponse {
 
 export const getGroupAnnouncements = async (
   groupId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<PaginatedAnnouncementsResponse> => {
   const res = await apiClient.get(`/announcements/group/${groupId}`, {
     params: {
@@ -48,7 +48,7 @@ export const getGroupAnnouncements = async (
 // ----------- GET AUTHOR ANNOUNCEMENTS -------------------
 export const getAuthorAnnouncements = async (
   userId: string,
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<PaginatedAnnouncementsResponse> => {
   const res = await apiClient.get(`/announcements/author/${userId}`, {
     params: {
@@ -66,7 +66,7 @@ export interface SearchAnnouncementsParams extends PaginationParams {
 
 export const searchAnnouncements = async (
   groupId: string,
-  params: SearchAnnouncementsParams
+  params: SearchAnnouncementsParams,
 ): Promise<PaginatedAnnouncementsResponse> => {
   const res = await apiClient.get(`/announcements/search/${groupId}`, {
     params: {
@@ -86,7 +86,7 @@ export interface UpdateAnnouncementPayload {
 
 export const updateAnnouncement = async (
   id: string,
-  payload: UpdateAnnouncementPayload
+  payload: UpdateAnnouncementPayload,
 ): Promise<IAnnouncement> => {
   const res = await apiClient.put(`/announcements/${id}`, payload);
   return res.data.data;

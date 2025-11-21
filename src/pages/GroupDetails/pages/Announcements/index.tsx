@@ -11,10 +11,10 @@ const Announcements = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const { data, isLoading, error } = useGroupAnnouncements(groupId!, { 
-    page, 
-    limit: 10 
+
+  const { data, isLoading, error } = useGroupAnnouncements(groupId!, {
+    page,
+    limit: 10,
   });
 
   if (isLoading) {
@@ -39,7 +39,7 @@ const Announcements = () => {
   return (
     <div className="space-y-6">
       <CreateAnnouncementButton groupId={groupId!} />
-      
+
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -64,13 +64,10 @@ const Announcements = () => {
             .filter((announcement) =>
               searchQuery
                 ? announcement.text.toLowerCase().includes(searchQuery.toLowerCase())
-                : true
+                : true,
             )
             .map((announcement) => (
-              <AnnouncementCard
-                key={announcement._id}
-                announcement={announcement}
-              />
+              <AnnouncementCard key={announcement._id} announcement={announcement} />
             ))
         )}
       </div>

@@ -23,18 +23,17 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
   const deleteMutation = useDeleteAnnouncement();
   const { user } = useAuth();
 
-  const author =
-    typeof announcement.author === 'object'
-      ? announcement.author
-      : null;
+  const author = typeof announcement.author === 'object' ? announcement.author : null;
 
-  const authorName = author
-    ? `${author.firstName} ${author.lastName}`
-    : 'Unknown';
+  const authorName = author ? `${author.firstName} ${author.lastName}` : 'Unknown';
 
-  const authorAvatar = author?.photoURL || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
+  const authorAvatar =
+    author?.photoURL ||
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop';
 
-  const isAuthor = user?._id === (typeof announcement.author === 'object' ? announcement.author._id : announcement.author);
+  const isAuthor =
+    user?._id ===
+    (typeof announcement.author === 'object' ? announcement.author._id : announcement.author);
 
   const handleUpdate = async () => {
     if (!editText.trim()) return;
@@ -93,7 +92,7 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
                   {formatDate(announcement.createdAt)}
                 </p>
               </div>
-              
+
               {isAuthor && !isEditing && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

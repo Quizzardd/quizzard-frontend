@@ -22,12 +22,12 @@ export default function CreateAnnouncementButton({ groupId }: CreateAnnouncement
 
   const handlePostAnnouncement = async () => {
     if (!content.trim()) return;
-    
+
     await createMutation.mutateAsync({
       text: content,
       group: groupId,
     });
-    
+
     setContent('');
     setIsOpen(false);
   };

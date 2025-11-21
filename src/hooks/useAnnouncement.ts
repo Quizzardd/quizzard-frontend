@@ -151,7 +151,10 @@ export const useUpdateAnnouncement = () => {
       toast.error(getApiErrorMessage(err, 'Failed to update announcement'));
 
       if (context?.previousAnnouncement) {
-        queryClient.setQueryData(['announcement', context.announcementId], context.previousAnnouncement);
+        queryClient.setQueryData(
+          ['announcement', context.announcementId],
+          context.previousAnnouncement,
+        );
       }
     },
     onSuccess: (_data, variables) => {
@@ -173,7 +176,8 @@ export const useDeleteAnnouncement = () => {
       const announcement = queryClient.getQueryData<IAnnouncement>(['announcement', id]);
 
       if (announcement) {
-        const groupId = typeof announcement.group === 'string' ? announcement.group : announcement.group._id;
+        const groupId =
+          typeof announcement.group === 'string' ? announcement.group : announcement.group._id;
 
         await queryClient.cancelQueries({ queryKey: ['announcements', 'group', groupId] });
 

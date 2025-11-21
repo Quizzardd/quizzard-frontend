@@ -57,3 +57,58 @@ export const leaveGroup = async (groupId: string) => {
   const res = await apiClient.delete(`/groups/${groupId}/leave`);
   return res.data;
 };
+
+// ----------- GET GROUP MEMBERS -------------------
+export interface IGroupMemberDetailed {
+  _id: string;
+  user: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role?: string;
+    photoURL?: string;
+  };
+  role: 'teacher' | 'student';
+  joinedAt: string;
+}
+
+export interface IGroupMembersResponse {
+  members: IGroupMemberDetailed[];
+  pagination: {
+    totalMembers: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  };
+}
+
+export const getGroupMembers = async (
+  groupId: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<IGroupMembersResponse> => {
+  const res = await apiClient.get(`/groups/${groupId}/members`, {
+    params: { page, limit },
+  });
+  return {
+    members: res.data.data,
+    pagination: res.data.pagination,
+  };
+};
+
+// ----------- REMOVE GROUP MEMBER -------------------
+// Note: This endpoint needs to be implemented in the backend
+export const removeGroupMember = async (groupId: string, userId: string) => {
+  try {
+    const res = await apiClient.delete(`/groups/${groupId}/members/${userId}`);
+    return res.data;
+  } catch (error: unknown) {
+    // If endpoint doesn't exist yet, throw a user-friendly error
+    const axiosError = error as { response?: { status?: number } };
+    if (axiosError.response?.status === 404) {
+      throw new Error('Remove member functionality not yet implemented in backend');
+    }
+    throw error;
+  }
+};
