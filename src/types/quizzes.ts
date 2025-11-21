@@ -30,8 +30,8 @@ export interface IQuestion {
   options?: string[]; // For MCQ
   correctIndex?: number; // For MCQ (renamed from correctOptionIndex for consistency)
   correctOptionIndex?: number; // Alternative name from backend
-  points: number;
-  point?: number; // Alternative name from backend
+  point: number; // Backend uses 'point' not 'points'
+  points?: number; // Compatibility field
   type?: QuestionType;
   createdAt?: Date;
 }

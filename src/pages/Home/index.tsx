@@ -9,11 +9,11 @@ export default function HomePage() {
   const navigate = useNavigate();
   return (
     <div className="space-y-8 m-4 p-6">
-      <button onClick={()=> navigate(`/quizzes/ffd45dfdf4/take`)}>Take QUIZ</button>
+      <button onClick={() => navigate(`/quizzes/691f8bf35dd19b6a0a6264ef/take`)}>Take QUIZ</button>
       <WelcomeUser />
       <StatusCards />
       <JoinGroupSection />
-      <TeachingGroups />  
+      <TeachingGroups />
       <StudentGroups />
     </div>
   );

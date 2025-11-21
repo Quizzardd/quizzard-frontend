@@ -22,7 +22,7 @@ export default function TeachingGroups() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Teaching Groups</h2>
-        <Button onClick={() => setShowCreateModal(true)} className="gap-2 cursor-pointer" size="sm">
+        <Button onClick={() => setShowCreateModal(true)} className="gap-2 cursor-pointer me-3" size="sm">
           <Plus className="w-4 h-4" />
           Create New Group
         </Button>

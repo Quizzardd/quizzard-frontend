@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import type { IQuiz, IQuestion } from '@/types/quizzes';
+import type { IQuiz } from '@/types/quizzes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -13,127 +13,62 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-
-// Static quiz data for testing
-const STATIC_QUIZ: IQuiz = {
-  _id: 'quiz1',
-  title: 'React Fundamentals Quiz',
-  description: 'Test your knowledge of React basics and core concepts',
-  totalMarks: 10,
-  durationMinutes: 30,
-  startAt: new Date().toISOString(),
-  endAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
-  questions: [
-    {
-      _id: 'q1',
-      text: 'What is React?',
-      options: [
-        'A JavaScript library for building user interfaces',
-        'A CSS framework',
-        'A backend framework',
-        'A database',
-      ],
-      correctOptionIndex: 0,
-      points: 1,
-    },
-    {
-      _id: 'q2',
-      text: 'Which hook is used to manage state in functional components?',
-      options: ['useEffect', 'useState', 'useContext', 'useReducer'],
-      correctOptionIndex: 1,
-      points: 1,
-    },
-    {
-      _id: 'q3',
-      text: 'What does JSX stand for?',
-      options: [
-        'JavaScript XML',
-        'JavaScript Extension',
-        'Java Syntax Extension',
-        'JavaScript Extra',
-      ],
-      correctOptionIndex: 0,
-      points: 1,
-    },
-    {
-      _id: 'q4',
-      text: 'Which method is used to update the state in React?',
-      options: ['updateState()', 'setState()', 'changeState()', 'modifyState()'],
-      correctOptionIndex: 1,
-      points: 1,
-    },
-    {
-      _id: 'q5',
-      text: 'What is the virtual DOM?',
-      options: [
-        'A lightweight copy of the actual DOM',
-        'A CSS framework',
-        'A backend API',
-        'A database',
-      ],
-      correctOptionIndex: 0,
-      points: 1,
-    },
-    {
-      _id: 'q6',
-      text: 'Which hook is used for side effects?',
-      options: ['useState', 'useEffect', 'useContext', 'useMemo'],
-      correctOptionIndex: 1,
-      points: 1,
-    },
-    {
-      _id: 'q7',
-      text: 'What is a React component?',
-      options: ['A reusable piece of UI', 'A CSS class', 'A database table', 'A server endpoint'],
-      correctOptionIndex: 0,
-      points: 1,
-    },
-    {
-      _id: 'q8',
-      text: 'Which company developed React?',
-      options: ['Google', 'Facebook', 'Microsoft', 'Amazon'],
-      correctOptionIndex: 1,
-      points: 1,
-    },
-    {
-      _id: 'q9',
-      text: 'What is the purpose of props in React?',
-      options: [
-        'To pass data from parent to child components',
-        'To style components',
-        'To manage state',
-        'To make API calls',
-      ],
-      correctOptionIndex: 0,
-      points: 1,
-    },
-    {
-      _id: 'q10',
-      text: 'What is React Router used for?',
-      options: ['Navigation between pages', 'State management', 'Styling', 'API integration'],
-      correctOptionIndex: 0,
-      points: 1,
-    },
-  ],
-};
+import { getQuizById, submitQuizAnswers } from '@/services/quizService';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function QuizTakingPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
-  const [quiz] = useState<IQuiz>(STATIC_QUIZ); // TODO: Replace with API call
+  const { isAuthenticated, user } = useAuth();
+  const [quiz, setQuiz] = useState<IQuiz | null>(null);
+  const [isLoadingQuiz, setIsLoadingQuiz] = useState(true);
+  const [quizError, setQuizError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(quiz.durationMinutes * 60); // in seconds
+  const [timeRemaining, setTimeRemaining] = useState(0); // Will be set when quiz loads
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [warningCount, setWarningCount] = useState(0);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmissionFailed, setHasSubmissionFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<Date | null>(null);
+  const submitQuizRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Fetch quiz data
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      if (!quizId) {
+        setQuizError('Quiz ID is missing');
+        setIsLoadingQuiz(false);
+        return;
+      }
+
+      try {
+        setIsLoadingQuiz(true);
+        setQuizError(null);
+        const quizData = await getQuizById(quizId);
+        setQuiz(quizData);
+        setTimeRemaining(quizData.durationMinutes! * 60);
+      } catch (error) {
+        console.error('Failed to fetch quiz:', error);
+        const err = error as { response?: { data?: { message?: string } } };
+        const errorMessage =
+          err.response?.data?.message || 'Failed to load quiz. Please try again.';
+        setQuizError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setIsLoadingQuiz(false);
+      }
+    };
+
+    fetchQuiz();
+  }, [quizId]);
 
   // Enter fullscreen
   const enterFullscreen = useCallback(() => {
@@ -172,34 +107,76 @@ export default function QuizTakingPage() {
   }, [quizStarted, quizSubmitted]);
 
   // Submit quiz
-  const submitQuiz = useCallback(() => {
-    if (quizSubmitted) return;
+  const submitQuiz = useCallback(async () => {
+    // Prevent multiple submissions or retries
+    if (quizSubmitted || isSubmitting || hasSubmissionFailed || !quiz) return;
+
+    // Check authentication
+    if (!isAuthenticated || !user) {
+      toast.error('You must be logged in to submit the quiz');
+      navigate('/login');
+      return;
+    }
 
     try {
+      setIsSubmitting(true);
       setQuizSubmitted(true);
       exitFullscreen();
 
-      const submission = {
-        quizId: quiz._id,
+      // Get all question IDs from the quiz
+      const allQuestionIds = quiz.questions?.map((q) => q._id) || [];
+
+      const result = await submitQuizAnswers(
+        quiz._id,
         answers,
-        startTime: startTimeRef.current || new Date(),
-        endTime: new Date(),
-        totalMarks: quiz.totalMarks,
-      };
+        allQuestionIds,
+        startTimeRef.current || new Date(),
+      );
 
-      console.log('Quiz submitted:', submission);
-      toast.success('Quiz submitted successfully!');
+      toast.success(result.message || 'Quiz submitted successfully!');
 
-      // TODO: Send submission to backend
+      // Navigate to home after successful submission
       setTimeout(() => {
-        navigate('/'); // Navigate to home page
+        navigate('/');
       }, 2000);
     } catch (error) {
       console.error('Error submitting quiz:', error);
-      toast.error('Failed to submit quiz. Please try again.');
+      const err = error as { response?: { data?: { message?: string; errors?: string[] } } };
+      const errorMessage =
+        err.response?.data?.message || 'Failed to submit quiz. Please try again.';
+      const errors = err.response?.data?.errors;
+
+      if (errors && errors.length > 0) {
+        console.error('Validation errors:', errors);
+        toast.error(`${errorMessage}: ${errors.join(', ')}`);
+      } else {
+        toast.error(errorMessage);
+      }
+
+      // Mark submission as failed to prevent auto-retry
+      setHasSubmissionFailed(true);
       setQuizSubmitted(false);
+      setIsSubmitting(false);
+
+      // Exit fullscreen on error
+      exitFullscreen();
     }
-  }, [quiz, answers, quizSubmitted, navigate, exitFullscreen]);
+  }, [
+    quiz,
+    answers,
+    quizSubmitted,
+    isSubmitting,
+    hasSubmissionFailed,
+    navigate,
+    exitFullscreen,
+    isAuthenticated,
+    user,
+  ]);
+
+  // Keep ref updated
+  useEffect(() => {
+    submitQuizRef.current = submitQuiz;
+  }, [submitQuiz]);
 
   // Start quiz
   const startQuiz = () => {
@@ -215,7 +192,7 @@ export default function QuizTakingPage() {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          submitQuiz();
+          submitQuizRef.current?.();
           return 0;
         }
         return prev - 1;
@@ -223,7 +200,7 @@ export default function QuizTakingPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [quizStarted, quizSubmitted, submitQuiz]);
+  }, [quizStarted, quizSubmitted]);
 
   // Enter fullscreen when quiz starts
   useEffect(() => {
@@ -298,7 +275,7 @@ export default function QuizTakingPage() {
 
   // Navigation
   const goToNext = () => {
-    if (currentQuestion < (quiz.questions?.length || 0) - 1) {
+    if (quiz && currentQuestion < (quiz.questions?.length || 0) - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
   };
@@ -318,11 +295,91 @@ export default function QuizTakingPage() {
     }, 100);
   };
 
-  const currentQ = quiz.questions?.[currentQuestion];
+  const currentQ = quiz?.questions?.[currentQuestion];
 
   const answeredCount = Object.keys(answers).length;
   const progress =
-    (quiz.questions?.length || 0) > 0 ? (answeredCount / (quiz.questions?.length || 1)) * 100 : 0;
+    (quiz?.questions?.length || 0) > 0 ? (answeredCount / (quiz?.questions?.length || 1)) * 100 : 0;
+
+  // Loading state
+  if (isLoadingQuiz) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="max-w-2xl w-full">
+          <CardContent className="py-12 text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+            <h2 className="text-2xl font-bold">Loading Quiz...</h2>
+            <p className="text-muted-foreground">Please wait while we fetch your quiz</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (quizError || !quiz) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="max-w-2xl w-full">
+          <CardContent className="py-12 text-center space-y-4">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold">Failed to Load Quiz</h2>
+            <p className="text-muted-foreground">
+              {quizError || 'Quiz not found or you do not have access to it.'}
+            </p>
+            <Button onClick={() => navigate('/')} variant="outline">
+              Return to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Submission failed state - allow manual retry
+  if (hasSubmissionFailed && !quizSubmitted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="max-w-2xl w-full">
+          <CardContent className="py-12 text-center space-y-4">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold">Submission Failed</h2>
+            <p className="text-muted-foreground">
+              Your quiz submission failed. This could be due to a network issue or server error.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Your answers have been preserved. You can try submitting again or return home.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button
+                onClick={() => {
+                  setHasSubmissionFailed(false);
+                  submitQuiz();
+                }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  'Retry Submission'
+                )}
+              </Button>
+              <Button onClick={() => navigate('/')} variant="outline">
+                Return to Home
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // If quiz is submitted, show a simple message
   if (quizSubmitted) {
@@ -335,7 +392,8 @@ export default function QuizTakingPage() {
             </div>
             <h2 className="text-2xl font-bold">Quiz Submitted!</h2>
             <p className="text-muted-foreground">
-              Your answers have been recorded successfully. Redirecting you back...
+              Your answers have been recorded successfully. You can view your results in your
+              profile.
             </p>
           </CardContent>
         </Card>
@@ -376,7 +434,7 @@ export default function QuizTakingPage() {
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
               <div className="flex gap-2">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 shrink-0" />
                 <div className="space-y-2">
                   <p className="font-semibold text-yellow-900 dark:text-yellow-200">
                     Important Instructions:
