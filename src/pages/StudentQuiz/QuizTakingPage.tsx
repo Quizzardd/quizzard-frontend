@@ -250,14 +250,35 @@ export default function QuizTakingPage() {
       e.preventDefault();
     };
 
+    const preventSelection = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
     if (quizStarted && !quizSubmitted) {
       document.addEventListener('keydown', preventCheating);
       document.addEventListener('contextmenu', preventContextMenu);
+      document.addEventListener('selectstart', preventSelection);
+      document.addEventListener('mousedown', (e) => {
+        // Prevent text selection via mouse drag
+        if (e.detail > 1) {
+          e.preventDefault();
+        }
+      });
+      
+      // Add CSS to prevent text selection
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
     }
 
     return () => {
       document.removeEventListener('keydown', preventCheating);
       document.removeEventListener('contextmenu', preventContextMenu);
+      document.removeEventListener('selectstart', preventSelection);
+      
+      // Restore text selection
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
     };
   }, [quizStarted, quizSubmitted]);
 
