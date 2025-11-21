@@ -20,6 +20,12 @@ export const useChat = () => {
     return localStorage.getItem('chatSessionId') || undefined;
   });
 
+  const clearSessionState = useCallback(() => {
+    setSessionId(undefined);
+    localStorage.removeItem('chatSessionId');
+    queryClient.removeQueries({ queryKey: ['chatHistory'] });
+  }, [queryClient]);
+
   // Fetch chat history when sessionId exists
   const { data: historyData, isLoading: isLoadingHistory } = useQuery({
     queryKey: ['chatHistory', sessionId, user?._id],
@@ -105,23 +111,26 @@ export const useChat = () => {
 
     // Optimistically add user message to UI
     onMutate: async (variables) => {
+      const hasSessionInVariables = Object.prototype.hasOwnProperty.call(variables, 'sessionId');
+      const targetSessionId = hasSessionInVariables ? variables.sessionId : sessionId;
+
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({
-        queryKey: ['chatHistory', sessionId, user?._id],
+        queryKey: ['chatHistory', targetSessionId, user?._id],
       });
 
       // Snapshot the previous value
-      const previousHistory = queryClient.getQueryData(['chatHistory', sessionId, user?._id]);
+      const previousHistory = queryClient.getQueryData(['chatHistory', targetSessionId, user?._id]);
 
       // Only do optimistic update if we have an existing session
       // For new sessions, wait for the server response to avoid duplicates
-      if (sessionId) {
-        queryClient.setQueryData(['chatHistory', sessionId, user?._id], (old: any) => {
+      if (targetSessionId) {
+        queryClient.setQueryData(['chatHistory', targetSessionId, user?._id], (old: any) => {
           if (!old?.sessions) return old;
 
           // Find and update the current session
           const updatedSessions = old.sessions.map((session: any) => {
-            if (session.id === sessionId) {
+            if (session.id === targetSessionId) {
               return {
                 ...session,
                 turns: [
@@ -177,7 +186,7 @@ export const useChat = () => {
 
       // IMPORTANT: Store sessionId FIRST before updating cache
       // This ensures the messages useMemo can find it when recomputing
-      if (data.sessionId && !sessionId) {
+      if (data.sessionId) {
         console.log('🆕 New session created:', data.sessionId);
         localStorage.setItem('chatSessionId', data.sessionId);
         setSessionId(data.sessionId);
@@ -201,7 +210,7 @@ export const useChat = () => {
       console.log('🤖 Bot content:', botContent);
 
       // Update cache with bot response
-      const targetSessionId = data.sessionId || sessionId;
+      const targetSessionId = data.sessionId || variables.sessionId || sessionId;
 
       console.log('🔑 Updating cache for sessionId:', targetSessionId);
       console.log('👤 User ID:', user?._id);
@@ -319,7 +328,10 @@ export const useChat = () => {
 
       // Rollback on error
       if (context?.previousHistory) {
-        queryClient.setQueryData(['chatHistory', sessionId, user?._id], context.previousHistory);
+        queryClient.setQueryData(
+          ['chatHistory', variables.sessionId ?? sessionId, user?._id],
+          context.previousHistory,
+        );
       }
 
       toast.error('Failed to send message', {
@@ -350,6 +362,7 @@ export const useChat = () => {
       groupId?: string,
       educatorName?: string,
       selectedModules?: Array<{ id: string; title: string }>,
+      options?: { resetSession?: boolean },
     ) => {
       if (!user?._id) {
         console.error('❌ User not authenticated');
@@ -357,8 +370,15 @@ export const useChat = () => {
         return;
       }
 
+      const shouldResetSession = options?.resetSession === true;
+
+      if (shouldResetSession) {
+        clearSessionState();
+      }
+
       // Get latest sessionId from localStorage to ensure it's always included
-      const currentSessionId = sessionId || localStorage.getItem('chatSessionId') || undefined;
+      const storedSessionId = localStorage.getItem('chatSessionId') || undefined;
+      const currentSessionId = shouldResetSession ? undefined : sessionId || storedSessionId;
 
       console.log('📤 Sending message with sessionId:', currentSessionId);
       console.log('📦 Payload extras:', { message, groupId, educatorName, selectedModules });
@@ -367,7 +387,7 @@ export const useChat = () => {
       const payload: ISendMessagePayload = {
         message,
         userId: user._id,
-        ...(currentSessionId && { sessionId: currentSessionId }),
+        sessionId: currentSessionId,
         ...(groupId && { groupId }),
         ...(educatorName && { educatorName }),
         ...(selectedModules && { selectedModules }),
@@ -375,19 +395,13 @@ export const useChat = () => {
 
       sendMessageMutation.mutate(payload);
     },
-    [sessionId, user?._id, sendMessageMutation],
+    [sessionId, user?._id, sendMessageMutation, clearSessionState],
   );
 
   const startNewConversation = useCallback(() => {
-    // Clear session
-    setSessionId(undefined);
-    localStorage.removeItem('chatSessionId');
-
-    // Invalidate queries
-    queryClient.invalidateQueries({ queryKey: ['chatHistory'] });
-
+    clearSessionState();
     toast.success('New conversation started');
-  }, [queryClient]);
+  }, [clearSessionState]);
 
   return {
     messages,

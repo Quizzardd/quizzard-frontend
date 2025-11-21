@@ -37,17 +37,23 @@ export default function CreateQuizPage() {
     }
 
     if (!hasInitialized && user && group) {
-      // Clear any existing session to start fresh for quiz generation
-      localStorage.removeItem('chatSessionId');
-
       const educatorName = `Dr/ ${user.firstName} ${user.lastName}`;
 
-      sendMessage(state.message, groupId!, educatorName, state.selectedModules);
+      sendMessage(state.message, groupId!, educatorName, state.selectedModules, {
+        resetSession: true,
+      });
 
       setHasInitialized(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasInitialized, user, group]);
+  }, [
+    group,
+    groupId,
+    hasInitialized,
+    navigate,
+    sendMessage,
+    state,
+    user,
+  ]);
 
   return (
     <div className="min-h-screen flex">
