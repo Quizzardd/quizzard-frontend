@@ -1,53 +1,39 @@
-import axios from 'axios';
 import type { IChatResponse, ISendMessagePayload, IChatHistoryResponse } from '@/types';
-
-// Create a separate axios instance for the AI chat backend
-const aiChatClient = axios.create({
-  baseURL: 'http://localhost:3000/api',
-  timeout: 30000, // 30 seconds for AI responses
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request interceptor for debugging
-aiChatClient.interceptors.request.use(
-  (config) => {
-    console.log('🚀 Sending chat request:', config.url, config.data);
-    return config;
-  },
-  (error) => {
-    console.error('❌ Request error:', error);
-    return Promise.reject(error);
-  },
-);
-
-// Add response interceptor for debugging
-aiChatClient.interceptors.response.use(
-  (response) => {
-    console.log('✅ Chatresponse  received:', response.data);
-    return response;
-  },
-  (error) => {
-    console.error('❌ Response error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  },
-);
+import apiClient from '@/config/axiosConfig';
 
 export const chatService = {
   // Send a message to AI (creates new session if sessionId not provided)
   sendMessage: async (payload: ISendMessagePayload): Promise<IChatResponse> => {
-    const res = await aiChatClient.post('/chat', {
+    const res = await apiClient.post('/agent/chat', {
       message: payload.message,
       userId: payload.userId,
       ...(payload.sessionId && { sessionId: payload.sessionId }),
+      ...(payload.groupId && { groupId: payload.groupId }),
+      ...(payload.educatorName && { educatorName: payload.educatorName }),
+      ...(payload.selectedModules && { selectedModules: payload.selectedModules }),
     });
     return res.data;
   },
 
+  /**
+   * {
+  "message": "Hello can you hear me?",
+  "userId": "bahaa",
+  "groupId": "grp_456",
+  "groupName": "CS201 - Spring 2025",
+  "educatorName": "Dr. Ada Lovelace",
+  "selectedModules": [
+    { "id": "mod_oop_001", "name": "Object-Oriented Programming" },
+    { "id": "mod_ds_002", "name": "Data Structures & Algorithms" }
+  ]
+}
+   * 
+   */
+
   // Get chat history for a session
   getChatHistory: async (sessionId: string, userId: string): Promise<IChatHistoryResponse> => {
-    const res = await aiChatClient.get(`/sessions/${userId}/${sessionId}?compact=true`);
+    const res = await apiClient.get(`/agent/sessions/${userId}?expand=true`);
+    console.log('response', res);
     return res.data;
   },
 

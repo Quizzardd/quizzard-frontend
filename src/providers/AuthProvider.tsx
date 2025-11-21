@@ -2,6 +2,7 @@
 import { useReducer, useEffect } from 'react';
 import { authService } from '@/services/authService';
 import { AuthContext } from '@/contexts/AuthContext';
+import { setAccessToken, clearAuth, initializeAuth } from '@/config/axiosConfig';
 import type { IUser } from '@/types';
 import type { IRegisterPayload } from '@/types/registerPayload';
 import { AUTH_ACTIONS } from '@/constants/authActions';
@@ -16,11 +17,13 @@ type AuthState = {
   error: string | null;
 };
 
+const bootstrapToken = typeof window !== 'undefined' ? sessionStorage.getItem('accessToken') : null;
+
 const initialState: AuthState = {
-  token: null,
+  token: bootstrapToken,
   user: null,
-  isAuthenticated: false,
-  isLoading: false,
+  isAuthenticated: Boolean(bootstrapToken),
+  isLoading: Boolean(bootstrapToken),
   error: null,
 };
 
@@ -63,20 +66,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('userToken');
-      if (token) {
-        try {
-          dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-          const user = await authService.getUser(token);
-          if (user) {
-            dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
-          }
-        } catch (error) {
-          console.log(error);
-          toast.error(getApiErrorMessage(error, 'Failed to load user'));
-          localStorage.removeItem('userToken');
+      const token = sessionStorage.getItem('accessToken');
+      if (!token) {
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
+        return;
+      }
+
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      // Initialize auth from sessionStorage
+      initializeAuth();
+
+      try {
+        const user = await authService.getUser(token);
+        if (user) {
+          dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
+        } else {
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
+      } catch (error) {
+        console.log(error);
+        toast.error(getApiErrorMessage(error, 'Failed to load user'));
+        clearAuth();
+        dispatch({ type: AUTH_ACTIONS.LOGOUT });
       }
     };
     loadUser();
@@ -85,11 +96,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-      const token = await authService.login(email, password);
-      localStorage.setItem('userToken', token);
+      const { accessToken, role } = await authService.login(email, password);
+      setAccessToken(accessToken);
+      if (role) {
+        sessionStorage.setItem('userRole', role);
+      }
 
-      const user = await authService.getUser(token);
-      dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: { token, user: user.data } });
+      const user = await authService.getUser(accessToken);
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { token: accessToken, user: user.data },
+      });
       toast.success('Logged in successfully');
 
       return { success: true };
@@ -129,14 +146,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await authService.logout();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
-      localStorage.removeItem('userToken');
+      clearAuth();
       toast.success('Logged out successfully');
     } catch (error) {
       const message = getApiErrorMessage(error, 'Logout failed');
       toast.error(message);
     } finally {
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
-      localStorage.removeItem('userToken');
+      clearAuth();
     }
   };
 

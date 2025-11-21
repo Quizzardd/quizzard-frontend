@@ -3,7 +3,6 @@ export * from './plans';
 export * from './subscriptions';
 export * from './groups';
 export * from './modules';
-export * from './weeks';
 export * from './materials';
 export * from './quizzes';
 export * from './submissions';

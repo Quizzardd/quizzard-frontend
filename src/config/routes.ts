@@ -11,4 +11,5 @@ export const ROUTES = {
   COURSES: 'courses',
   PLANS: 'plans',
   GROUP_DETAILS: '/groups/:groupId',
+  CREATE_QUIZ: '/groups/:groupId/create-quiz',
 };

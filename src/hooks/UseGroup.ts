@@ -237,3 +237,32 @@ export const useLeaveGroup = () => {
     },
   });
 };
+
+// -------------------- GET GROUP MEMBERS -------------------
+import { getGroupMembers, removeGroupMember } from '@/services/groupService';
+
+export const useGroupMembers = (groupId: string) => {
+  return useQuery({
+    queryKey: ['group-members', groupId],
+    queryFn: () => getGroupMembers(groupId),
+    enabled: !!groupId,
+  });
+};
+
+// -------------------- REMOVE GROUP MEMBER -------------------
+export const useRemoveGroupMember = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ groupId, userId }: { groupId: string; userId: string }) =>
+      removeGroupMember(groupId, userId),
+    onSuccess: (_data, variables) => {
+      toast.success('Member removed successfully');
+      queryClient.invalidateQueries({ queryKey: ['group-members', variables.groupId] });
+      queryClient.invalidateQueries({ queryKey: ['group', variables.groupId] });
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, 'Failed to remove member'));
+    },
+  });
+};
