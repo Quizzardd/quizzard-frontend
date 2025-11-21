@@ -3,14 +3,17 @@ import TeachingGroups from './components/TeachingGroups';
 import StatusCards from './components/StatusCard';
 import StudentGroups from './components/studentGroups';
 import JoinGroupSection from './components/JoinGroupSection';
+import { useNavigate } from 'react-router';
 
 export default function HomePage() {
+  const navigate = useNavigate();
   return (
     <div className="space-y-8 m-4 p-6">
+      <button onClick={()=> navigate(`/quizzes/ffd45dfdf4/take`)}>Take QUIZ</button>
       <WelcomeUser />
       <StatusCards />
       <JoinGroupSection />
-      <TeachingGroups />
+      <TeachingGroups />  
       <StudentGroups />
     </div>
   );
