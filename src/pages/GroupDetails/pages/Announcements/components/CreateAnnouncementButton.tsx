@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,26 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useCreateAnnouncement } from '@/hooks/useAnnouncement';
 
-export default function CreateAnnouncementButton() {
+interface CreateAnnouncementButtonProps {
+  groupId: string;
+}
+
+export default function CreateAnnouncementButton({ groupId }: CreateAnnouncementButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
+  const createMutation = useCreateAnnouncement();
 
-  const handlePostAnnouncement = () => {
-    console.log('Posting announcement:', content);
-    // Add your API call here
+  const handlePostAnnouncement = async () => {
+    if (!content.trim()) return;
+    
+    await createMutation.mutateAsync({
+      text: content,
+      group: groupId,
+    });
+    
     setContent('');
     setIsOpen(false);
   };
@@ -68,8 +79,9 @@ export default function CreateAnnouncementButton() {
             <Button
               onClick={handlePostAnnouncement}
               className="px-6 bg-blue-600 hover:bg-blue-700"
-              disabled={!content.trim()}
+              disabled={!content.trim() || createMutation.isPending}
             >
+              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Post Announcement
             </Button>
           </div>
