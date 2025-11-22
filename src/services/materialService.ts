@@ -18,10 +18,15 @@ export interface CreateMaterialPayload {
   files: File[];
 }
 
+export interface CreateMaterialResponse {
+  message: string;
+  data: IMaterial[];
+}
+
 export const createMaterial = async (
   moduleId: string,
   payload: CreateMaterialPayload,
-): Promise<IMaterial[]> => {
+): Promise<CreateMaterialResponse> => {
   const formData = new FormData();
   payload.files.forEach((file) => {
     formData.append('files', file);
@@ -32,7 +37,7 @@ export const createMaterial = async (
       'Content-Type': 'multipart/form-data',
     },
   });
-  return res.data.data;
+  return res.data;
 };
 
 // ----------- CREATE MATERIAL BY LINK -------------------

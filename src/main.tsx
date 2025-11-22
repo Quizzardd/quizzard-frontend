@@ -8,6 +8,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './providers/AuthProvider.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { Toaster } from 'react-hot-toast';
+import { Toaster as Toast } from 'sonner';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

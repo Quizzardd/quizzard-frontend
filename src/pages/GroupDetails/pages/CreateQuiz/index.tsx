@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Loader2, MessageSquare, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import { useGroupById } from '@/hooks/UseGroup';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
@@ -45,15 +45,7 @@ export default function CreateQuizPage() {
 
       setHasInitialized(true);
     }
-  }, [
-    group,
-    groupId,
-    hasInitialized,
-    navigate,
-    sendMessage,
-    state,
-    user,
-  ]);
+  }, [group, groupId, hasInitialized, navigate, sendMessage, state, user]);
 
   return (
     <div className="min-h-screen flex">

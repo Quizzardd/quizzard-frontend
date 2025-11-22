@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '@/lib/apiError';
 import type { IMaterial } from '@/types/materials';
 import {
@@ -47,12 +47,12 @@ export const useCreateMaterial = (moduleId: string) => {
     },
     onError: (err: unknown, _newMaterial, context) => {
       toast.error(getApiErrorMessage(err, 'Failed to upload material(s)'));
-
       if (context?.previousMaterials) {
         queryClient.setQueryData(['materials', moduleId], context.previousMaterials);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log(data);
       toast.success('Material(s) uploaded successfully!');
       queryClient.invalidateQueries({ queryKey: ['materials', moduleId] });
     },
