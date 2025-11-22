@@ -20,7 +20,7 @@ const GroupDetails = () => {
 
   const { group, role } = groupData;
   const isTeacher = role === 'teacher';
-  const ownerName = group.owner 
+  const ownerName = group.owner
     ? `${group.owner.firstName} ${group.owner.lastName}`.trim()
     : 'Unknown';
 
@@ -56,7 +56,7 @@ const GroupDetails = () => {
       />
 
       <div className="absolute bottom-10 left-10 text-white flex items-start gap-4 overlay-shadow p-4 rounded-md bg-black/40">
-        <Button variant="secondary" className="mb-2" onClick={() => navigate("/")}>
+        <Button variant="secondary" className="mb-2" onClick={() => navigate('/')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="space-y-2 col-auto">
