@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 
 const loginSchema = z.object({
   email: z.email('Please enter a valid email'),
@@ -50,8 +50,18 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
         password: values.password,
       });
 
-      if (result.success) {
-        navigate(ROUTES.HOME);
+      console.log('Login result:', result);
+      console.log('User role:', result.user?.role);
+
+      if (result.success && result.user) {
+        // Navigate to admin dashboard if user is admin, otherwise to home
+        if (result.user.role === 'admin') {
+          console.log('Navigating to admin dashboard');
+          navigate(ROUTES.ADMIN);
+        } else {
+          console.log('Navigating to home');
+          navigate(ROUTES.HOME);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -60,13 +70,22 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       setLoading(true);
       // Use the credential (id_token) from Google
+      if (!credentialResponse.credential) {
+        toast.error('Google login failed - no credential received');
+        return;
+      }
       const result = await loginWithGoogle(credentialResponse.credential);
-      if (result.success) {
-        navigate(ROUTES.HOME);
+      if (result.success && result.user) {
+        // Navigate to admin dashboard if user is admin, otherwise to home
+        if (result.user.role === 'admin') {
+          navigate(ROUTES.ADMIN);
+        } else {
+          navigate(ROUTES.HOME);
+        }
       }
     } catch (err) {
       console.error(err);

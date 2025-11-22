@@ -5,7 +5,7 @@ import { ROUTES } from '@/config/routes';
 import { AuthLayout } from '@/layouts/AuthLayout';
 
 export const AuthRoute = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -16,7 +16,8 @@ export const AuthRoute = () => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.HOME} replace />;
+    // Redirect admin users to admin dashboard, others to home
+    return <Navigate to={user?.role === 'admin' ? ROUTES.ADMIN : ROUTES.HOME} replace />;
   }
 
   // Not authenticated -> show auth layout (login/register)

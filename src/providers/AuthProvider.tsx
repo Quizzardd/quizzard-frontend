@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       toast.success('Logged in successfully');
 
-      return { success: true };
+      return { success: true, user: user.data };
     } catch (error) {
       const message = getApiErrorMessage(error, 'Login failed');
       dispatch({
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         toast.success('Logged in successfully with Google');
       }
 
-      return { success: true };
+      return { success: true, user };
     } catch (error) {
       console.error('Google login error:', error);
       const message = getApiErrorMessage(error, 'Google login failed');
