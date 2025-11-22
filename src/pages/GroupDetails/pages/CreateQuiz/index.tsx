@@ -29,7 +29,6 @@ export default function CreateQuizPage() {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // If no state is passed, redirect back
     if (!state || !state.message || !state.selectedModules) {
       toast.error('Missing quiz generation data');
       navigate(`/groups/${groupId}`);
@@ -38,7 +37,7 @@ export default function CreateQuizPage() {
 
     if (!hasInitialized && user && group) {
       const educatorName = `Dr/ ${user.firstName} ${user.lastName}`;
-
+      console.log('selected modules: ', state.selectedModules);
       sendMessage(state.message, groupId!, educatorName, state.selectedModules, {
         resetSession: true,
       });
@@ -49,10 +48,8 @@ export default function CreateQuizPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${isChatOpen ? 'md:mr-80' : ''}`}>
         <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {/* Header */}
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
@@ -114,8 +111,14 @@ export default function CreateQuizPage() {
         </div>
       </div>
 
-      {/* AI Chat Sidebar */}
-      {isChatOpen && <ChatSidebar onClose={() => setIsChatOpen(false)} />}
+      {isChatOpen && user && state?.selectedModules && (
+        <ChatSidebar
+          onClose={() => setIsChatOpen(false)}
+          groupId={groupId!}
+          educatorName={`Dr/ ${user.firstName} ${user.lastName}`}
+          selectedModules={state.selectedModules}
+        />
+      )}
 
       {/* Chat Toggle Button */}
       {!isChatOpen && (

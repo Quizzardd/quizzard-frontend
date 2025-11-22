@@ -4,14 +4,20 @@ import apiClient from '@/config/axiosConfig';
 export const chatService = {
   // Send a message to AI (creates new session if sessionId not provided)
   sendMessage: async (payload: ISendMessagePayload): Promise<IChatResponse> => {
-    const res = await apiClient.post('/agent/chat', {
-      message: payload.message,
-      userId: payload.userId,
-      ...(payload.sessionId && { sessionId: payload.sessionId }),
-      ...(payload.groupId && { groupId: payload.groupId }),
-      ...(payload.educatorName && { educatorName: payload.educatorName }),
-      ...(payload.selectedModules && { selectedModules: payload.selectedModules }),
-    });
+    const res = await apiClient.post(
+      '/agent/chat',
+      {
+        message: payload.message,
+        userId: payload.userId,
+        ...(payload.sessionId && { sessionId: payload.sessionId }),
+        ...(payload.groupId && { groupId: payload.groupId }),
+        ...(payload.educatorName && { educatorName: payload.educatorName }),
+        ...(payload.selectedModules && { selectedModules: payload.selectedModules }),
+      },
+      {
+        timeout: 60000, // 60 seconds timeout for AI requests
+      },
+    );
     return res.data;
   },
 
@@ -31,7 +37,7 @@ export const chatService = {
    */
 
   // Get chat history for a session
-  getChatHistory: async (sessionId: string, userId: string): Promise<IChatHistoryResponse> => {
+  getChatHistory: async (_sessionId: string, userId: string): Promise<IChatHistoryResponse> => {
     const res = await apiClient.get(`/agent/sessions/${userId}?expand=true`);
     console.log('response', res);
     return res.data;

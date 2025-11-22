@@ -8,14 +8,33 @@ import { cn } from '@/lib/utils';
 
 interface ChatSidebarProps {
   onClose?: () => void;
+  groupId: string;
+  educatorName: string;
+  selectedModules: Array<{ id: string; title: string }>;
 }
 
-export const ChatSidebar: React.FC<ChatSidebarProps> = ({ onClose }) => {
+export const ChatSidebar: React.FC<ChatSidebarProps> = ({
+  onClose,
+  groupId,
+  educatorName,
+  selectedModules,
+}) => {
   const { messages, sendMessage, isSendingMessage } = useChat();
 
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Store the context values in refs to ensure they persist
+  const groupIdRef = useRef(groupId);
+  const educatorNameRef = useRef(educatorName);
+  const selectedModulesRef = useRef(selectedModules);
+
+  // Update refs when props change
+  useEffect(() => {
+    if (groupId) groupIdRef.current = groupId;
+    if (educatorName) educatorNameRef.current = educatorName;
+    if (selectedModules) selectedModulesRef.current = selectedModules;
+  }, [groupId, educatorName, selectedModules]);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -26,8 +45,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ onClose }) => {
 
   const handleSendMessage = () => {
     if (!messageInput.trim()) return;
-
-    sendMessage(messageInput);
+    sendMessage(
+      messageInput,
+      groupIdRef.current,
+      educatorNameRef.current,
+      selectedModulesRef.current,
+    );
     setMessageInput('');
   };
 
