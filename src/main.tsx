@@ -55,6 +55,4 @@ const AppWrapper = googleClientId ? (
   </QueryClientProvider>
 );
 
-createRoot(document.getElementById('root')!).render(
-  <ErrorBoundary>{AppWrapper}</ErrorBoundary>,
-);
+createRoot(document.getElementById('root')!).render(<ErrorBoundary>{AppWrapper}</ErrorBoundary>);

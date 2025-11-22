@@ -127,13 +127,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
       const { accessToken, user, isNewUser } = await authService.loginWithGoogle(token);
-      
+
       console.log('Google login response:', { accessToken, user, isNewUser });
-      
+
       if (!accessToken) {
         throw new Error('No access token received from server');
       }
-      
+
       setAccessToken(accessToken);
       if (user.role) {
         sessionStorage.setItem('userRole', user.role);
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
         payload: { token: accessToken, user },
       });
-      
+
       if (isNewUser) {
         toast.success('Welcome! Your account has been created.');
       } else {
