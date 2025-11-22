@@ -1,11 +1,58 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { useGroupAnnouncements } from '@/hooks/useAnnouncement';
 import AnnouncementCard from './components/AnnouncementCard';
 import CreateAnnouncementButton from './components/CreateAnnouncementButton';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+
+type PaginationEntry = number | 'dots';
+
+const buildPaginationItems = (currentPage: number, pages: number): PaginationEntry[] => {
+  if (pages <= 0) return [];
+
+  const siblingCount = 1;
+  const totalPageNumbers = siblingCount * 2 + 5;
+
+  if (totalPageNumbers >= pages) {
+    return Array.from({ length: pages }, (_, index) => index + 1);
+  }
+
+  const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+  const rightSiblingIndex = Math.min(currentPage + siblingCount, pages);
+
+  const shouldShowLeftDots = leftSiblingIndex > 2;
+  const shouldShowRightDots = rightSiblingIndex < pages - 2;
+
+  if (!shouldShowLeftDots && shouldShowRightDots) {
+    const leftItemCount = 3 + siblingCount * 2;
+    const leftRange = Array.from({ length: leftItemCount }, (_, index) => index + 1);
+    return [...leftRange, 'dots', pages];
+  }
+
+  if (shouldShowLeftDots && !shouldShowRightDots) {
+    const rightItemCount = 3 + siblingCount * 2;
+    const start = pages - rightItemCount + 1;
+    const rightRange = Array.from({ length: rightItemCount }, (_, index) => start + index);
+    return [1, 'dots', ...rightRange];
+  }
+
+  const middleRange = Array.from(
+    { length: rightSiblingIndex - leftSiblingIndex + 1 },
+    (_, index) => leftSiblingIndex + index,
+  );
+
+  return [1, 'dots', ...middleRange, 'dots', pages];
+};
 
 const Announcements = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -14,8 +61,18 @@ const Announcements = () => {
 
   const { data, isLoading, error } = useGroupAnnouncements(groupId!, {
     page,
-    limit: 10,
+    limit: 5,
   });
+  console.log('data: ', data);
+  const announcements = data?.announcements || [];
+  const pages = data?.pages || 1;
+  console.log('total pages:', pages);
+  const paginationItems = useMemo(() => buildPaginationItems(page, pages), [page, pages]);
+
+  const handlePageChange = (nextPage: number) => {
+    if (nextPage === page || nextPage < 1 || nextPage > pages) return;
+    setPage(nextPage);
+  };
 
   if (isLoading) {
     return (
@@ -32,9 +89,6 @@ const Announcements = () => {
       </div>
     );
   }
-
-  const announcements = data?.announcements || [];
-  const totalPages = data?.totalPages || 1;
 
   return (
     <div className="space-y-6">
@@ -73,26 +127,53 @@ const Announcements = () => {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </Button>
-          <span className="flex items-center px-4 text-sm">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </Button>
-        </div>
+      {pages > 1 && (
+        <Pagination className="mt-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                aria-disabled={page === 1}
+                className={page === 1 ? 'pointer-events-none opacity-50' : ''}
+                onClick={(event) => {
+                  event.preventDefault();
+                  handlePageChange(page - 1);
+                }}
+              />
+            </PaginationItem>
+
+            {paginationItems.map((item, index) => (
+              <PaginationItem key={`${item}-${index}`}>
+                {item === 'dots' ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    href="#"
+                    isActive={item === page}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      handlePageChange(item);
+                    }}
+                  >
+                    {item}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                aria-disabled={page === pages}
+                className={page === pages ? 'pointer-events-none opacity-50' : ''}
+                onClick={(event) => {
+                  event.preventDefault();
+                  handlePageChange(page + 1);
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   );

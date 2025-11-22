@@ -27,9 +27,9 @@ export interface PaginationParams {
 
 export interface PaginatedAnnouncementsResponse {
   announcements: IAnnouncement[];
-  totalPages: number;
+  pages: number;
   currentPage: number;
-  totalAnnouncements: number;
+  total: number;
 }
 
 export const getGroupAnnouncements = async (
