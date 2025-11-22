@@ -15,11 +15,19 @@ export const getGroupById = async (groupId: string) => {
 // ----------- CREATE GROUP -------------------
 export interface CreateGroupPayload {
   title: string;
-  coverUrl?: string;
+  coverUrl?: File;
 }
 
 export const createGroup = async (payload: CreateGroupPayload) => {
-  const res = await apiClient.post('/groups', payload);
+  const formData = new FormData();
+  formData.append('title', payload.title);
+  if (payload.coverUrl) {
+    formData.append('coverUrl', payload.coverUrl);
+  }
+
+  const res = await apiClient.post('/groups', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return res.data.data;
 };
 

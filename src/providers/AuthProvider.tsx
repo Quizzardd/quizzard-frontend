@@ -8,6 +8,7 @@ import type { IRegisterPayload } from '@/types/registerPayload';
 import { AUTH_ACTIONS } from '@/constants/authActions';
 import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '@/lib/apiError';
+import { useQueryClient } from '@tanstack/react-query';
 
 type AuthState = {
   token: string | null;
@@ -63,6 +64,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -147,6 +149,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await authService.logout();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
       clearAuth();
+      queryClient.clear(); // Clear all React Query cache
       toast.success('Logged out successfully');
     } catch (error) {
       const message = getApiErrorMessage(error, 'Logout failed');
@@ -154,6 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
       clearAuth();
+      queryClient.clear(); // Clear all React Query cache
     }
   };
 
