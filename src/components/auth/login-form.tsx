@@ -50,16 +50,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
         password: values.password,
       });
 
-      console.log('Login result:', result);
-      console.log('User role:', result.user?.role);
-
       if (result.success && result.user) {
         // Navigate to admin dashboard if user is admin, otherwise to home
         if (result.user.role === 'admin') {
-          console.log('Navigating to admin dashboard');
           navigate(ROUTES.ADMIN);
         } else {
-          console.log('Navigating to home');
           navigate(ROUTES.HOME);
         }
       }

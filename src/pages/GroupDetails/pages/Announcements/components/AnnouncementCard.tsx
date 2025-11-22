@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Edit2, Save, X, Loader2, MoreVertical } from 'lucide-react';
 import { useUpdateAnnouncement, useDeleteAnnouncement } from '@/hooks/useAnnouncement';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroupContext } from '../../../contexts/GroupContext';
 import type { IAnnouncement } from '@/types/announcements';
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ interface AnnouncementCardProps {
 }
 
 export default function AnnouncementCard({ announcement }: AnnouncementCardProps) {
+  const { isTeacher } = useGroupContext();
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(announcement.text);
   const updateMutation = useUpdateAnnouncement();
@@ -34,6 +36,8 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
   const isAuthor =
     user?._id ===
     (typeof announcement.author === 'object' ? announcement.author._id : announcement.author);
+
+  const canEdit = isTeacher && isAuthor;
 
   const handleUpdate = async () => {
     if (!editText.trim()) return;
@@ -93,7 +97,7 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
                 </p>
               </div>
 
-              {isAuthor && !isEditing && (
+              {canEdit && !isEditing && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

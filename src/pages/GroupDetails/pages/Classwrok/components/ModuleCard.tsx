@@ -8,6 +8,7 @@ import { useMaterialsByModule } from '@/hooks/useMaterial';
 import { useDeleteModule } from '@/hooks/useModule';
 import { useCreateMaterial } from '@/hooks/useMaterial';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGroupContext } from '../../../contexts/GroupContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ interface ModuleCardProps {
 }
 
 export default function ModuleCard({ module }: ModuleCardProps) {
+  const { isTeacher } = useGroupContext();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,51 +85,53 @@ export default function ModuleCard({ module }: ModuleCardProps) {
               </Button>
               <CardTitle className="text-lg font-semibold">{module.title}</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                multiple
-                accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.avi,.mov"
-                disabled={isUploading}
-                className="hidden"
-              />
+            {isTeacher && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.avi,.mov"
+                  disabled={isUploading}
+                  className="hidden"
+                />
 
-              <Button
-                variant="link"
-                size="sm"
-                className="text-primary hover:text-primary/80"
-                onClick={handleAddMaterial}
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <FileUp className="h-4 w-4 mr-2" />
-                    Upload Material
-                  </>
-                )}
-              </Button>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-primary hover:text-primary/80"
+                  onClick={handleAddMaterial}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <FileUp className="h-4 w-4 mr-2" />
+                      Upload Material
+                    </>
+                  )}
+                </Button>
 
-              <Button variant="link" size="sm" className="text-primary hover:text-primary/80">
-                <Plus className="h-4 w-4" />
-                Quiz
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setShowDeleteDialog(true)}
-                className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                disabled={deleteModuleMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+                <Button variant="link" size="sm" className="text-primary hover:text-primary/80">
+                  <Plus className="h-4 w-4" />
+                  Quiz
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                  disabled={deleteModuleMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
 
