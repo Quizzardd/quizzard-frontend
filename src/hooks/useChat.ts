@@ -43,6 +43,7 @@ export const useChat = () => {
 
     console.log('🔍 Computing messages for sessionId:', currentSessionId);
     console.log('📊 History data exists:', !!historyData);
+    console.log('📊 History data sessions:', historyData?.sessions?.length);
 
     if (!currentSessionId) {
       console.log('⚠️ No sessionId available yet');
@@ -67,7 +68,11 @@ export const useChat = () => {
     const currentSession = sessionsData.sessions.find((s) => s.id === currentSessionId);
 
     if (!currentSession) {
-      console.log('⚠️ Session not found in data');
+      console.log('⚠️ Session not found in data, searching all sessions...');
+      console.log(
+        'Available sessions:',
+        sessionsData.sessions.map((s) => s.id),
+      );
       return [];
     }
 
@@ -103,7 +108,7 @@ export const useChat = () => {
 
     console.log('💬 Total messages:', loadedMessages.length);
     return loadedMessages;
-  }, [historyData, sessionId, queryClient, user?._id]);
+  }, [historyData, sessionId, user?._id, historyData?.sessions, isLoadingHistory]);
 
   // Send message mutation with optimistic updates
   const sendMessageMutation = useMutation({
@@ -402,6 +407,14 @@ export const useChat = () => {
     clearSessionState();
     toast.success('New conversation started');
   }, [clearSessionState]);
+
+  // Debug: log whenever messages, sessionId, or historyData changes
+  console.log('🔄 useChat return values:', {
+    messagesCount: messages.length,
+    sessionId,
+    hasHistoryData: !!historyData,
+    isLoadingHistory,
+  });
 
   return {
     messages,

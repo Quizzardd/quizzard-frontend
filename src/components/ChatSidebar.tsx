@@ -24,6 +24,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Debug: Log when messages change
+  useEffect(() => {
+    console.log('💬 ChatSidebar - Messages updated:', messages.length, messages);
+  }, [messages]);
+
   // Store the context values in refs to ensure they persist
   const groupIdRef = useRef(groupId);
   const educatorNameRef = useRef(educatorName);
