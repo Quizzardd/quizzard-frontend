@@ -9,6 +9,7 @@ import {
   getQuizById,
   updateQuiz,
   deleteQuiz,
+  checkQuizTaken,
   type GenerateQuizPayload,
   type QuizDetailsPayload,
   type UpdateQuizPayload,
@@ -150,5 +151,14 @@ export const useDeleteQuiz = () => {
       toast.success('Quiz deleted successfully!');
       queryClient.invalidateQueries({ queryKey: ['quizzes'] });
     },
+  });
+};
+
+// -------------------- CHECK QUIZ TAKEN STATUS -------------------
+export const useCheckQuizTaken = (userId: string, quizId: string) => {
+  return useQuery({
+    queryKey: ['quiz-taken', userId, quizId],
+    queryFn: () => checkQuizTaken(userId, quizId),
+    enabled: !!userId && !!quizId,
   });
 };

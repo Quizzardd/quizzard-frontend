@@ -17,11 +17,13 @@ import { Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getQuizById, submitQuizAnswers } from '@/services/quizService';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function QuizTakingPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const queryClient = useQueryClient();
   const [quiz, setQuiz] = useState<IQuiz | null>(null);
   const [isLoadingQuiz, setIsLoadingQuiz] = useState(true);
   const [quizError, setQuizError] = useState<string | null>(null);
@@ -134,6 +136,11 @@ export default function QuizTakingPage() {
       );
 
       toast.success(result.message || 'Quiz submitted successfully!');
+
+      // Invalidate the quiz-taken query to update the UI
+      if (user?._id && quiz._id) {
+        queryClient.invalidateQueries({ queryKey: ['quiz-taken', user._id, quiz._id] });
+      }
 
       // Navigate to home after successful submission
       setTimeout(() => {
@@ -265,7 +272,7 @@ export default function QuizTakingPage() {
           e.preventDefault();
         }
       });
-      
+
       // Add CSS to prevent text selection
       document.body.style.userSelect = 'none';
       document.body.style.webkitUserSelect = 'none';
@@ -275,7 +282,7 @@ export default function QuizTakingPage() {
       document.removeEventListener('keydown', preventCheating);
       document.removeEventListener('contextmenu', preventContextMenu);
       document.removeEventListener('selectstart', preventSelection);
-      
+
       // Restore text selection
       document.body.style.userSelect = '';
       document.body.style.webkitUserSelect = '';
