@@ -38,6 +38,7 @@ export default function JoinGroupModal({ open, onOpenChange }: JoinGroupModalPro
   });
 
   const onSubmit = async (data: JoinGroupFormData) => {
+    console.log(data.inviteCode);
     await joinGroup.mutateAsync(data.inviteCode);
     reset();
     onOpenChange(false);
@@ -65,7 +66,7 @@ export default function JoinGroupModal({ open, onOpenChange }: JoinGroupModalPro
               id="inviteCode"
               placeholder="Enter invite code (e.g., yFamZr)"
               {...register('inviteCode')}
-              className="uppercase"
+              
             />
             {errors.inviteCode && (
               <p className="text-sm text-red-500">{errors.inviteCode.message}</p>

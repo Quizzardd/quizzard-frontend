@@ -8,14 +8,38 @@ import { cn } from '@/lib/utils';
 
 interface ChatSidebarProps {
   onClose?: () => void;
+  groupId: string;
+  educatorName: string;
+  selectedModules: Array<{ id: string; title: string }>;
 }
 
-export const ChatSidebar: React.FC<ChatSidebarProps> = ({ onClose }) => {
+export const ChatSidebar: React.FC<ChatSidebarProps> = ({
+  onClose,
+  groupId,
+  educatorName,
+  selectedModules,
+}) => {
   const { messages, sendMessage, isSendingMessage } = useChat();
 
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Debug: Log when messages change
+  useEffect(() => {
+    console.log('💬 ChatSidebar - Messages updated:', messages.length, messages);
+  }, [messages]);
+
+  // Store the context values in refs to ensure they persist
+  const groupIdRef = useRef(groupId);
+  const educatorNameRef = useRef(educatorName);
+  const selectedModulesRef = useRef(selectedModules);
+
+  // Update refs when props change
+  useEffect(() => {
+    if (groupId) groupIdRef.current = groupId;
+    if (educatorName) educatorNameRef.current = educatorName;
+    if (selectedModules) selectedModulesRef.current = selectedModules;
+  }, [groupId, educatorName, selectedModules]);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -26,8 +50,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ onClose }) => {
 
   const handleSendMessage = () => {
     if (!messageInput.trim()) return;
-
-    sendMessage(messageInput);
+    sendMessage(
+      messageInput,
+      groupIdRef.current,
+      educatorNameRef.current,
+      selectedModulesRef.current,
+    );
     setMessageInput('');
   };
 
@@ -79,9 +107,24 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({ onClose }) => {
           <ScrollArea className="h-full p-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                <Bot className="h-16 w-16 mb-4 opacity-50" />
-                <p className="text-sm font-medium">Build with Agent</p>
-                <p className="text-xs mt-2 px-4">AI responses may be inaccurate.</p>
+                {isSendingMessage ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
+                    <p className="text-xs px-4 text-muted-foreground">Waiting for AI response.</p>
+                  </div>
+                ) : (
+                  <>
+                    <Bot className="h-16 w-16 mb-4 opacity-50" />
+                    <p className="text-sm font-medium">Build with Agent</p>
+                    <p className="text-xs mt-2 px-4">AI responses may be inaccurate.</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

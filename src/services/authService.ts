@@ -9,7 +9,7 @@ export const authService = {
 
   login: async (email: string, password: string) => {
     const res = await apiClient.post('/users/login', { email, password });
-    return res.data.accessToken;
+    return { accessToken: res.data.accessToken, role: res.data.role };
   },
 
   logout: async () => {
@@ -32,7 +32,7 @@ export const authService = {
     return res.data;
   },
   refresh: async () => {
-    const res = await apiClient.post('/users/refresh');
+    const res = await apiClient.post('/users/refresh-token');
     return res.data.accessToken;
   },
 };

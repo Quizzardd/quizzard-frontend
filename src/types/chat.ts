@@ -20,6 +20,9 @@ export interface ISendMessagePayload {
   message: string;
   sessionId?: string;
   userId: string;
+  groupId?: string;
+  educatorName?: string;
+  selectedModules?: Array<{ id: string; title: string }>;
 }
 
 export interface IMessageContent {
@@ -42,7 +45,7 @@ export interface IConversationListResponse {
 
 export interface IChatTurn {
   user: {
-    text: string;
+    text: string | { message: string; [key: string]: any };
     timestamp: number;
   } | null;
   agent: {
@@ -58,6 +61,12 @@ export interface IChatSession {
 }
 
 export interface IChatHistoryResponse {
+  success: boolean;
+  userId: string;
+  sessions: IChatSession[];
+}
+
+export interface ISingleSessionResponse {
   success: boolean;
   session: IChatSession;
 }
