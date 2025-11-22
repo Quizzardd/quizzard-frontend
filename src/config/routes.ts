@@ -5,6 +5,7 @@ export const ROUTES = {
   QUIZZES: '/quizzes',
   PROFILE: '/profile',
   SETTINGS: '/settings',
+  CONFIRM_MAIL: "/confirm-email/:userId",
   SUBSCRIPTION: '/subscription',
   STUDENTS: 'students',
   TEACHERS: 'teachers',

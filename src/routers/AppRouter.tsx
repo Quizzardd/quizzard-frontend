@@ -10,6 +10,7 @@ import Classwork from '@/pages/GroupDetails/pages/Classwrok';
 import People from '@/pages/GroupDetails/pages/People';
 import ComingSoon from '@/components/ComingSoon';
 
+
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
@@ -21,6 +22,7 @@ const SubscriptionFail = lazy(() => import('@/pages/Subscriptions/SubscriptionFa
 const ProfilePage = lazy(() => import('@/pages/Profile'));
 const QuizTakingPage = lazy(() => import('@/pages/StudentQuiz/QuizTakingPage'));
 const CreateQuizPage = lazy(() => import('@/pages/GroupDetails/pages/CreateQuiz'));
+const MailVerificationPage = lazy(() => import('@/pages/MailVerification'));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() =>
@@ -39,6 +41,7 @@ export const routes = (
 
     <Route path={ROUTES.AUTH} element={<AuthRoute />} />
 
+    <Route path="/users/confirm-email/:userId" element={<MailVerificationPage />} />
     <Route element={<ProtectedRoute />}>
       <Route path={ROUTES.HOME} element={<MainLayout />}>
         <Route index element={<HomePage />} />
@@ -61,6 +64,7 @@ export const routes = (
           <Route path="people" element={<People />} />
           <Route path="grades" element={<ComingSoon />} />
         </Route>
+
       </Route>
     </Route>
 
