@@ -52,17 +52,17 @@ export default function CreateGroupModal({ open, onClose }: CreateGroupModalProp
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith('image/')) {
       toast.error('Please select a valid image file');
       return;
     }
-    
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size must be less than 5MB');
       return;
     }
-    
+
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -121,7 +121,7 @@ export default function CreateGroupModal({ open, onClose }: CreateGroupModalProp
           {/* Cover Image Upload Field */}
           <div className="space-y-2">
             <Label htmlFor="coverUrl">Cover Image (Optional)</Label>
-            
+
             {previewUrl ? (
               <div className="relative">
                 <img
@@ -146,9 +146,7 @@ export default function CreateGroupModal({ open, onClose }: CreateGroupModalProp
                   <p className="text-sm text-muted-foreground mb-1">
                     Click to upload or drag and drop
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    PNG, JPG, GIF up to 5MB
-                  </p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
                 </label>
                 <Input
                   id="coverUrl"
@@ -167,7 +165,7 @@ export default function CreateGroupModal({ open, onClose }: CreateGroupModalProp
               variant="outline"
               onClick={handleClose}
               disabled={isPending || isSubmitting}
-              className='me-2'
+              className="me-2"
             >
               Cancel
             </Button>
