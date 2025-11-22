@@ -123,6 +123,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const loginWithGoogle = async (token: string) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      const { accessToken, user, isNewUser } = await authService.loginWithGoogle(token);
+      
+      console.log('Google login response:', { accessToken, user, isNewUser });
+      
+      if (!accessToken) {
+        throw new Error('No access token received from server');
+      }
+      
+      setAccessToken(accessToken);
+      if (user.role) {
+        sessionStorage.setItem('userRole', user.role);
+      }
+
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { token: accessToken, user },
+      });
+      
+      if (isNewUser) {
+        toast.success('Welcome! Your account has been created.');
+      } else {
+        toast.success('Logged in successfully with Google');
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Google login error:', error);
+      const message = getApiErrorMessage(error, 'Google login failed');
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: { error: message },
+      });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
   // 🧾 Register
   const register = async (data: IRegisterPayload) => {
     try {
@@ -168,6 +208,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading: state.isLoading,
     error: state.error,
     login,
+    loginWithGoogle,
     logout,
     register,
   };

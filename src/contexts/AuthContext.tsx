@@ -11,6 +11,7 @@ export type AuthContextType = {
     email: string;
     password: string;
   }) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (token: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   register: (
     registerPayload: IRegisterPayload,
