@@ -132,7 +132,7 @@ export default function ModuleCard({ module }: ModuleCardProps) {
         </CardHeader>
 
         {isExpanded && (
-          <CardContent className="space-y-2 pt-6">
+          <CardContent className="space-y-2">
             {materialsLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-12 w-full" />
