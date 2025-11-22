@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatService } from '@/services/chatService';
 import type { ISendMessagePayload, IChatResponse } from '@/types';
 import toast from 'react-hot-toast';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from './useAuth';
 
 interface IChatMessage {
@@ -11,175 +11,243 @@ interface IChatMessage {
   timestamp: Date;
 }
 
+interface ChatTurn {
+  user?: {
+    text: string | { message: string };
+    timestamp: number;
+  };
+  agent?: {
+    text: string;
+    timestamp: number;
+  };
+}
+
+interface ChatSession {
+  id: string;
+  lastUpdateTime: number;
+  turns: ChatTurn[];
+}
+
+interface ChatHistoryResponse {
+  success: boolean;
+  userId: string;
+  sessions: ChatSession[];
+}
+
+// Constants
+const CHAT_SESSION_KEY = 'chatSessionId';
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes
+const GC_TIME = 30 * 60 * 1000; // 30 minutes
+
+// Helper: Safe localStorage operations
+const storage = {
+  get: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.error('localStorage.setItem failed:', error);
+    }
+  },
+  remove: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error('localStorage.removeItem failed:', error);
+    }
+  },
+};
+
+// Helper: Parse user message content
+const parseUserContent = (text: string | { message: string }): string => {
+  if (typeof text === 'string') return text;
+  return text.message || JSON.stringify(text);
+};
+
+// Helper: Convert turns to messages
+const turnsToMessages = (turns: ChatTurn[]): IChatMessage[] => {
+  const messages: IChatMessage[] = [];
+
+  turns.forEach((turn) => {
+    if (turn.user) {
+      messages.push({
+        content: parseUserContent(turn.user.text),
+        sender: 'user',
+        timestamp: new Date(turn.user.timestamp * 1000),
+      });
+    }
+
+    if (turn.agent) {
+      messages.push({
+        content: turn.agent.text,
+        sender: 'bot',
+        timestamp: new Date(turn.agent.timestamp * 1000),
+      });
+    }
+  });
+
+  return messages;
+};
+
 export const useChat = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Session ID state (could also be persisted via React Query)
-  const [sessionId, setSessionId] = useState<string | undefined>(() => {
-    return localStorage.getItem('chatSessionId') || undefined;
-  });
+  // Single source of truth for sessionId
+  const [sessionId, setSessionId] = useState<string | undefined>(
+    () => storage.get(CHAT_SESSION_KEY) || undefined,
+  );
 
+  // Track pending messages for optimistic UI (for new sessions)
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+
+  // Track if we're initializing to prevent race conditions
+  const isInitializing = useRef(false);
+
+  // Sync sessionId with localStorage
+  useEffect(() => {
+    if (sessionId) {
+      storage.set(CHAT_SESSION_KEY, sessionId);
+    } else {
+      storage.remove(CHAT_SESSION_KEY);
+    }
+  }, [sessionId]);
+
+  // Clear session state
   const clearSessionState = useCallback(() => {
     setSessionId(undefined);
-    localStorage.removeItem('chatSessionId');
+    setPendingMessage(null);
+    storage.remove(CHAT_SESSION_KEY);
     queryClient.removeQueries({ queryKey: ['chatHistory'] });
   }, [queryClient]);
 
-  // Fetch chat history when sessionId exists
-  const { data: historyData, isLoading: isLoadingHistory } = useQuery({
+  // Fetch chat history
+  const {
+    data: historyData,
+    isLoading: isLoadingHistory,
+    error: historyError,
+  } = useQuery<ChatHistoryResponse>({
     queryKey: ['chatHistory', sessionId, user?._id],
     queryFn: () => chatService.getChatHistory(sessionId!, user!._id),
     enabled: !!sessionId && !!user?._id,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
-    retry: false, // Don't retry if session doesn't exist yet
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+    retry: false,
   });
 
-  // Derive messages from query data instead of managing separate state
+  // Derive messages from history data + pending message
   const messages = useMemo<IChatMessage[]>(() => {
-    // Try to get the latest sessionId (could be in state or just set in cache)
-    const currentSessionId = sessionId || localStorage.getItem('chatSessionId') || undefined;
+    const baseMessages: IChatMessage[] = [];
 
-    console.log('🔍 Computing messages for sessionId:', currentSessionId);
-    console.log('📊 History data exists:', !!historyData);
-    console.log('📊 History data sessions:', historyData?.sessions?.length);
+    // Get messages from history if available
+    if (sessionId && historyData?.success && historyData.sessions) {
+      const currentSession = historyData.sessions.find((s) => s.id === sessionId);
 
-    if (!currentSessionId) {
-      console.log('⚠️ No sessionId available yet');
-      return [];
-    }
-
-    // If we don't have query data yet, try to get it from the cache directly
-    let sessionsData = historyData;
-    if (!sessionsData?.success || !sessionsData.sessions) {
-      console.log('🔄 No query data, checking cache directly...');
-      const cachedData = queryClient.getQueryData(['chatHistory', currentSessionId, user?._id]);
-      console.log('💾 Cached data:', JSON.stringify(cachedData, null, 2));
-      sessionsData = cachedData as typeof historyData;
-    }
-
-    if (!sessionsData?.success || !sessionsData.sessions) {
-      console.log('⚠️ No sessions data available');
-      return [];
-    }
-
-    // Find the current session from the sessions array
-    const currentSession = sessionsData.sessions.find((s) => s.id === currentSessionId);
-
-    if (!currentSession) {
-      console.log('⚠️ Session not found in data, searching all sessions...');
-      console.log(
-        'Available sessions:',
-        sessionsData.sessions.map((s) => s.id),
-      );
-      return [];
-    }
-
-    console.log('✅ Found session with', currentSession.turns.length, 'turns');
-
-    const loadedMessages: IChatMessage[] = [];
-
-    currentSession.turns.forEach((turn) => {
-      // Add user message if exists
-      if (turn.user) {
-        // Handle both string and object text formats
-        const userContent =
-          typeof turn.user.text === 'string'
-            ? turn.user.text
-            : turn.user.text.message || JSON.stringify(turn.user.text);
-
-        loadedMessages.push({
-          content: userContent,
-          sender: 'user',
-          timestamp: new Date(turn.user.timestamp * 1000), // Convert seconds to milliseconds
-        });
+      if (currentSession) {
+        baseMessages.push(...turnsToMessages(currentSession.turns));
       }
+    }
 
-      // Add agent/bot message if exists
-      if (turn.agent) {
-        loadedMessages.push({
-          content: turn.agent.text,
-          sender: 'bot',
-          timestamp: new Date(turn.agent.timestamp * 1000), // Convert seconds to milliseconds
-        });
-      }
-    });
+    // Add pending message for new sessions (optimistic UI)
+    if (pendingMessage && !sessionId) {
+      baseMessages.push({
+        content: pendingMessage,
+        sender: 'user',
+        timestamp: new Date(),
+      });
+    }
 
-    console.log('💬 Total messages:', loadedMessages.length);
-    return loadedMessages;
-  }, [historyData, sessionId, user?._id, historyData?.sessions, isLoadingHistory]);
+    return baseMessages;
+  }, [historyData, sessionId, pendingMessage]);
 
-  // Send message mutation with optimistic updates
+  // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: (payload: ISendMessagePayload) => chatService.sendMessage(payload),
 
-    // Optimistically add user message to UI
     onMutate: async (variables) => {
-      const hasSessionInVariables = Object.prototype.hasOwnProperty.call(variables, 'sessionId');
-      const targetSessionId = hasSessionInVariables ? variables.sessionId : sessionId;
-
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: ['chatHistory', targetSessionId, user?._id],
-      });
-
-      // Snapshot the previous value
-      const previousHistory = queryClient.getQueryData(['chatHistory', targetSessionId, user?._id]);
-
-      // Only do optimistic update if we have an existing session
-      // For new sessions, wait for the server response to avoid duplicates
-      if (targetSessionId) {
-        queryClient.setQueryData(['chatHistory', targetSessionId, user?._id], (old: any) => {
-          if (!old?.sessions) return old;
-
-          // Find and update the current session
-          const updatedSessions = old.sessions.map((session: any) => {
-            if (session.id === targetSessionId) {
-              return {
-                ...session,
-                turns: [
-                  ...session.turns,
-                  {
-                    user: {
-                      text: variables.message,
-                      timestamp: Date.now() / 1000, // Convert to seconds
-                    },
-                  },
-                ],
-              };
-            }
-            return session;
-          });
-
-          return {
-            ...old,
-            sessions: updatedSessions,
-          };
-        });
+      // Prevent multiple simultaneous initializations
+      if (!variables.sessionId && isInitializing.current) {
+        throw new Error('Message already being sent');
       }
 
-      // Return context with snapshot
-      return { previousHistory };
+      if (!variables.sessionId) {
+        isInitializing.current = true;
+        // Set pending message for optimistic UI
+        setPendingMessage(variables.message);
+      }
+
+      const targetSessionId = variables.sessionId || sessionId;
+
+      // Only do cache optimistic update for existing sessions
+      if (targetSessionId) {
+        await queryClient.cancelQueries({
+          queryKey: ['chatHistory', targetSessionId, user?._id],
+        });
+
+        const previousHistory = queryClient.getQueryData<ChatHistoryResponse>([
+          'chatHistory',
+          targetSessionId,
+          user?._id,
+        ]);
+
+        // Optimistically add user message to cache
+        queryClient.setQueryData<ChatHistoryResponse>(
+          ['chatHistory', targetSessionId, user?._id],
+          (old) => {
+            if (!old?.sessions) return old;
+
+            return {
+              ...old,
+              sessions: old.sessions.map((session) =>
+                session.id === targetSessionId
+                  ? {
+                      ...session,
+                      turns: [
+                        ...session.turns,
+                        {
+                          user: {
+                            text: variables.message,
+                            timestamp: Date.now() / 1000,
+                          },
+                        },
+                      ],
+                    }
+                  : session,
+              ),
+            };
+          },
+        );
+
+        return { previousHistory, targetSessionId };
+      }
+
+      return { previousHistory: undefined, targetSessionId: undefined };
     },
 
-    onSuccess: (data: IChatResponse, variables) => {
-      console.log('✅ Response received:', data);
-      console.log('📦 Full response object:', JSON.stringify(data, null, 2));
+    onSuccess: (data: IChatResponse, variables, context) => {
+      isInitializing.current = false;
 
-      // Check if response is an error
+      // Handle error responses
       if (
         typeof data.response === 'object' &&
         'code' in data.response &&
         'message' in data.response
       ) {
-        console.error('❌ Backend returned error:', data.response);
+        console.error('Backend error:', data.response);
 
-        // If session doesn't belong to user, clear it and start fresh
+        // Clear pending message on error
+        setPendingMessage(null);
+
+        // Session expired or invalid
         if (data.response.code === 498) {
-          setSessionId(undefined);
-          localStorage.removeItem('chatSessionId');
-          toast.error('Session expired. Please try again.');
+          clearSessionState();
+          toast.error('Session expired. Starting new conversation.');
           return;
         }
 
@@ -189,152 +257,150 @@ export const useChat = () => {
         return;
       }
 
-      // IMPORTANT: Store sessionId FIRST before updating cache
-      // This ensures the messages useMemo can find it when recomputing
-      if (data.sessionId) {
-        console.log('🆕 New session created:', data.sessionId);
-        localStorage.setItem('chatSessionId', data.sessionId);
-        setSessionId(data.sessionId);
-      }
-
       // Extract bot response
       let botContent: string;
-      let botTimestamp: Date;
+      let botTimestamp: number;
 
       if (typeof data.response === 'string') {
         botContent = data.response;
-        botTimestamp = new Date(data.timestamp || Date.now());
+        botTimestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
       } else if ('content' in data.response) {
         botContent = data.response.content;
-        botTimestamp = new Date(data.response.timestamp || data.timestamp || Date.now());
+        botTimestamp = (data.response.timestamp || data.timestamp || Date.now() / 1000) * 1000;
       } else {
-        console.error('❌ Unexpected response format:', data.response);
+        console.error('Unexpected response format:', data.response);
+        toast.error('Invalid response format from server');
+        setPendingMessage(null);
         return;
       }
 
-      console.log('🤖 Bot content:', botContent);
+      const newSessionId = data.sessionId || context?.targetSessionId || sessionId;
 
-      // Update cache with bot response
-      const targetSessionId = data.sessionId || variables.sessionId || sessionId;
+      // CRITICAL: Update sessionId state BEFORE updating cache
+      // This ensures the useMemo recomputes with the correct sessionId
+      if (data.sessionId && data.sessionId !== sessionId) {
+        console.log('✅ Setting new sessionId:', data.sessionId);
+        setSessionId(data.sessionId);
+      }
 
-      console.log('🔑 Updating cache for sessionId:', targetSessionId);
-      console.log('👤 User ID:', user?._id);
+      // Clear pending message
+      setPendingMessage(null);
 
-      queryClient.setQueryData(['chatHistory', targetSessionId, user?._id], (old: any) => {
-        console.log('📝 Old cache data:', JSON.stringify(old, null, 2));
+      // Update cache with complete conversation turn
+      // Use the NEW sessionId for the cache key
+      const cacheKey = ['chatHistory', newSessionId, user?._id];
 
+      queryClient.setQueryData<ChatHistoryResponse>(cacheKey, (old) => {
+        const timestamp = Date.now() / 1000;
+
+        // Create new session structure if needed
         if (!old?.sessions) {
-          // Create new sessions array structure if it doesn't exist
-          // For new sessions, only add the agent response since user message is handled by optimistic update
-          const newData = {
+          const newData: ChatHistoryResponse = {
             success: true,
             userId: user?._id || '',
             sessions: [
               {
-                id: targetSessionId,
-                lastUpdateTime: Date.now() / 1000,
+                id: newSessionId!,
+                lastUpdateTime: timestamp,
                 turns: [
                   {
                     user: {
-                      text: typeof variables.message === 'string' ? variables.message : variables,
-                      timestamp: Date.now() / 1000,
+                      text: variables.message,
+                      timestamp,
                     },
                     agent: {
                       text: botContent,
-                      timestamp: botTimestamp.getTime() / 1000,
+                      timestamp: botTimestamp / 1000,
                     },
                   },
                 ],
               },
             ],
           };
-          console.log('✨ Creating new cache data:', JSON.stringify(newData, null, 2));
+          console.log('✨ Created new cache structure:', newData);
           return newData;
         }
 
-        // Find the current session or create it
-        const sessionIndex = old.sessions.findIndex((s: any) => s.id === targetSessionId);
+        // Find or create session
+        const sessionIndex = old.sessions.findIndex((s) => s.id === newSessionId);
 
         if (sessionIndex === -1) {
-          // Add new session - this happens when backend creates a new session
-          // Only add the complete turn since there was no optimistic update for new sessions
-          const updatedData = {
+          // Add new session
+          console.log('➕ Adding new session to cache');
+          return {
             ...old,
             sessions: [
               ...old.sessions,
               {
-                id: targetSessionId,
-                lastUpdateTime: Date.now() / 1000,
+                id: newSessionId!,
+                lastUpdateTime: timestamp,
                 turns: [
                   {
                     user: {
-                      text: typeof variables.message === 'string' ? variables.message : variables,
-                      timestamp: Date.now() / 1000,
+                      text: variables.message,
+                      timestamp,
                     },
                     agent: {
                       text: botContent,
-                      timestamp: botTimestamp.getTime() / 1000,
+                      timestamp: botTimestamp / 1000,
                     },
                   },
                 ],
               },
             ],
           };
-          console.log('➕ Added new session:', JSON.stringify(updatedData, null, 2));
-          return updatedData;
         }
 
-        // Update existing session - user message should already be there from optimistic update
+        // Update existing session
         const updatedSessions = [...old.sessions];
         const currentSession = { ...updatedSessions[sessionIndex] };
-        const updatedTurns = [...currentSession.turns];
-        const lastTurn = updatedTurns[updatedTurns.length - 1];
+        const turns = [...currentSession.turns];
+        const lastTurn = turns[turns.length - 1];
 
-        // Check if the last turn already has the user message from optimistic update
-        if (lastTurn && lastTurn.user && !lastTurn.agent) {
-          // Just add the agent response to the existing turn
+        // Complete the last turn with agent response
+        if (lastTurn?.user && !lastTurn.agent) {
+          console.log('✏️ Completing existing turn with agent response');
           lastTurn.agent = {
             text: botContent,
-            timestamp: botTimestamp.getTime() / 1000,
+            timestamp: botTimestamp / 1000,
           };
-          console.log('✏️ Updated last turn with agent response');
         } else {
-          // This shouldn't happen normally, but handle it just in case
-          updatedTurns.push({
+          // Fallback: create new turn with both messages
+          console.log('➕ Creating new complete turn');
+          turns.push({
+            user: {
+              text: variables.message,
+              timestamp,
+            },
             agent: {
               text: botContent,
-              timestamp: botTimestamp.getTime() / 1000,
+              timestamp: botTimestamp / 1000,
             },
           });
-          console.log('➕ Added new turn with agent response only');
         }
 
-        currentSession.turns = updatedTurns;
-        currentSession.lastUpdateTime = Date.now() / 1000;
+        currentSession.turns = turns;
+        currentSession.lastUpdateTime = timestamp;
         updatedSessions[sessionIndex] = currentSession;
 
-        const updatedData = {
+        return {
           ...old,
           sessions: updatedSessions,
         };
-
-        console.log('✅ Updated cache data:', JSON.stringify(updatedData, null, 2));
-        return updatedData;
       });
 
-      // Force a re-render by invalidating the query
-      queryClient.invalidateQueries({
-        queryKey: ['chatHistory', targetSessionId, user?._id],
-      });
+      console.log('💾 Cache updated successfully for session:', newSessionId);
     },
 
     onError: (error: Error, variables, context) => {
-      console.error('❌ Mutation error:', error);
+      isInitializing.current = false;
+      setPendingMessage(null);
+      console.error('Send message error:', error);
 
-      // Rollback on error
-      if (context?.previousHistory) {
+      // Rollback optimistic update
+      if (context?.previousHistory && context.targetSessionId) {
         queryClient.setQueryData(
-          ['chatHistory', variables.sessionId ?? sessionId, user?._id],
+          ['chatHistory', context.targetSessionId, user?._id],
           context.previousHistory,
         );
       }
@@ -345,22 +411,7 @@ export const useChat = () => {
     },
   });
 
-  /**
-   * 
-   * {
-    "message": "10",
-    "selectedModules": [
-        {
-            "id": "691fa62959731e84b70ee6dd",
-            "title": "Module 1"
-        }
-    ],
-    "userId": "691fa23caf8b1a472014834f",
-    "groupId": "691fa454af8b1a4720148360",
-    "educatorName": "Dr/ Peter Joseph"
-}
-   */
-
+  // Send message function
   const sendMessage = useCallback(
     (
       message: string,
@@ -370,27 +421,31 @@ export const useChat = () => {
       options?: { resetSession?: boolean },
     ) => {
       if (!user?._id) {
-        console.error('❌ User not authenticated');
-        toast.error('User not authenticated');
+        toast.error('Please sign in to continue');
         return;
       }
 
-      const shouldResetSession = options?.resetSession === true;
+      if (!message.trim()) {
+        toast.error('Message cannot be empty');
+        return;
+      }
 
-      if (shouldResetSession) {
+      // Reset session if requested
+      if (options?.resetSession) {
         clearSessionState();
       }
 
-      // Get latest sessionId from localStorage to ensure it's always included
-      const storedSessionId = localStorage.getItem('chatSessionId') || undefined;
-      const currentSessionId = shouldResetSession ? undefined : sessionId || storedSessionId;
+      // Determine sessionId to use
+      const currentSessionId = options?.resetSession ? undefined : sessionId;
 
-      console.log('📤 Sending message with sessionId:', currentSessionId);
-      console.log('📦 Payload extras:', { message, groupId, educatorName, selectedModules });
+      console.log('📤 Sending message:', {
+        hasSession: !!currentSessionId,
+        sessionId: currentSessionId,
+        message: message.substring(0, 50) + '...',
+      });
 
-      // Build payload
       const payload: ISendMessagePayload = {
-        message,
+        message: message.trim(),
         userId: user._id,
         sessionId: currentSessionId,
         ...(groupId && { groupId }),
@@ -403,26 +458,28 @@ export const useChat = () => {
     [sessionId, user?._id, sendMessageMutation, clearSessionState],
   );
 
+  // Start new conversation
   const startNewConversation = useCallback(() => {
     clearSessionState();
     toast.success('New conversation started');
   }, [clearSessionState]);
 
-  // Debug: log whenever messages, sessionId, or historyData changes
-  console.log('🔄 useChat return values:', {
-    messagesCount: messages.length,
-    sessionId,
-    hasHistoryData: !!historyData,
-    isLoadingHistory,
-  });
-
   return {
+    // Core state
     messages,
     sessionId,
+
+    // Actions
     sendMessage,
+    startNewConversation,
+
+    // Loading states
     isSendingMessage: sendMessageMutation.isPending,
     isLoadingHistory,
-    startNewConversation,
+
+    // Errors
+    error: historyError,
+
     // Legacy compatibility
     conversations: [],
     totalConversations: 0,
