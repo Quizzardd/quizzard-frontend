@@ -8,7 +8,9 @@ import toast from 'react-hot-toast';
 import { useGroupById } from '@/hooks/UseGroup';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
+import { useQuizPreview } from '@/hooks/useQuizPreview';
 import { ChatSidebar } from '@/components/ChatSidebar';
+import { QuizPreview } from '@/components/QuizPreview';
 
 interface CreateQuizPageState {
   message: string;
@@ -23,11 +25,50 @@ export default function CreateQuizPage() {
   const { user } = useAuth();
 
   const state = location.state as CreateQuizPageState | null;
-  const { sendMessage, isSendingMessage, messages } = useChat();
+  const { sendMessage, isSendingMessage, messages, sessionId, latestQuizId, setOnQuizDetected } = useChat();
   const { data: group, isLoading: isLoadingGroup } = useGroupById(groupId!);
+  const { quiz, quizAction, isLoading: isLoadingQuiz, error: quizError, updateQuizId } = useQuizPreview();
 
   const [isChatOpen, setIsChatOpen] = useState(true);
-  const initializationAttempted = useRef(false);
+  const hasInitialized = useRef(false);
+  const processedQuizIdRef = useRef<string | null>(null);
+
+  // Poll sessionStorage for quiz updates (since useChat instances don't share state)
+  useEffect(() => {
+    console.log('🔔 Setting up sessionStorage polling for quiz detection');
+    
+    const checkForQuiz = () => {
+      try {
+        const storedQuizId = sessionStorage.getItem('latestQuizId');
+        
+        if (storedQuizId && storedQuizId.trim() !== '' && storedQuizId !== processedQuizIdRef.current) {
+          console.log('🎯 Quiz detected from sessionStorage:', storedQuizId);
+          console.log('📝 Processing new quiz:', storedQuizId);
+          console.log('🎯 Calling updateQuizId with:', storedQuizId, 'created');
+          updateQuizId(storedQuizId, 'created');
+          processedQuizIdRef.current = storedQuizId;
+          toast.success('Quiz generated successfully!');
+          
+          // Clear after processing
+          sessionStorage.removeItem('latestQuizId');
+          console.log('🧹 Cleared latestQuizId from sessionStorage');
+        }
+      } catch (err) {
+        console.error('Error reading sessionStorage:', err);
+      }
+    };
+
+    // Check immediately
+    checkForQuiz();
+
+    // Then poll every second for updates
+    const interval = setInterval(checkForQuiz, 1000);
+
+    return () => {
+      console.log('🧹 Cleaning up sessionStorage polling');
+      clearInterval(interval);
+    };
+  }, [updateQuizId]);
 
   // Validate state and navigate back if invalid
   useEffect(() => {
@@ -37,29 +78,23 @@ export default function CreateQuizPage() {
     }
   }, [state, groupId, navigate]);
 
-  // Initialize chat session once when ready
+  // Initialize chat session once when ready (AFTER listener is set up)
   useEffect(() => {
-    // Prevent multiple initializations
-    if (initializationAttempted.current) return;
+    // Only initialize once
+    if (hasInitialized.current) return;
 
-    // Wait for all required data
+    // Wait for required data
     if (!state || !user || !group || isLoadingGroup) return;
 
     const educatorName = `Dr/ ${user.firstName} ${user.lastName}`;
 
-    console.log('Initializing quiz generation:', {
-      message: state.message,
-      modules: state.selectedModules,
-      groupId,
-      educatorName,
-    });
+    console.log('🚀 Initializing quiz generation - using existing or creating new session');
 
-    // Send initial message with reset session
-    sendMessage(state.message, groupId, educatorName, state.selectedModules, {
-      resetSession: true,
-    });
+    // Send initial message (will use existing session or create new one)
+    // NO resetSession - we want to keep the same session for WebSocket room consistency
+    sendMessage(state.message, groupId, educatorName, state.selectedModules);
 
-    initializationAttempted.current = true;
+    hasInitialized.current = true;
   }, [state, user, group, isLoadingGroup, groupId, sendMessage]);
 
   // Early return if state is invalid
@@ -72,92 +107,110 @@ export default function CreateQuizPage() {
   return (
     <div className="min-h-screen flex">
       <div className={`flex-1 transition-all duration-300 ${isChatOpen ? 'md:mr-80' : ''}`}>
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => navigate(`/groups/${groupId}`)}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Group
-            </Button>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span className="text-sm text-muted-foreground">AI Quiz Generation</span>
+        <div className="max-w-7xl mx-auto p-6">
+          <div className={`grid gap-6 ${quiz ? 'lg:grid-cols-2' : 'lg:grid-cols-1'}`}>
+            {/* Header */}
+            <div className={`flex items-center justify-between ${quiz ? 'lg:col-span-2' : ''}`}>
+              <Button
+                variant="ghost"
+                onClick={() => navigate(`/groups/${groupId}`)}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Group
+              </Button>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <span className="text-sm text-muted-foreground">AI Quiz Generation</span>
+              </div>
             </div>
+
+            {/* Left Column - Status & Details */}
+            <div className="space-y-6">
+              {/* Status Card */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8 space-y-4">
+                    {isSendingMessage || !hasReceivedResponse ? (
+                      <>
+                        <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+                        <div className="space-y-2">
+                          <h2 className="text-lg font-semibold">
+                            {hasReceivedResponse
+                              ? 'Processing your request...'
+                              : 'Generating Quiz with AI'}
+                          </h2>
+                          <p className="text-sm text-muted-foreground">
+                            {hasReceivedResponse
+                              ? 'The AI is working on your quiz.'
+                              : 'Initializing AI assistant and loading module materials...'}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="h-10 w-10 mx-auto text-primary" />
+                        <div className="space-y-2">
+                          <h2 className="text-lg font-semibold">AI Assistant Ready</h2>
+                          <p className="text-sm text-muted-foreground">
+                            Chat with the AI to refine your quiz.
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quiz Details Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quiz Generation Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-muted-foreground">Your Request</Label>
+                    <p className="mt-1 text-sm">{state.message}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Selected Modules</Label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {state.selectedModules.map((module) => (
+                        <span
+                          key={module.id}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary/10 text-primary"
+                        >
+                          {module.title}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {hasReceivedResponse && (
+                    <div className="pt-2 border-t">
+                      <Label className="text-muted-foreground">Conversation</Label>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {messages.length} message{messages.length !== 1 ? 's' : ''} exchanged
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Quiz Preview */}
+            {quiz && (
+              <div className="lg:row-span-2">
+                <div className="sticky top-6 h-[calc(100vh-8rem)]">
+                  <QuizPreview
+                    quiz={quiz}
+                    isLoading={isLoadingQuiz}
+                    error={quizError}
+                    quizAction={quizAction}
+                  />
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Status Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-12 space-y-4">
-                {isSendingMessage || !hasReceivedResponse ? (
-                  <>
-                    <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-                    <div className="space-y-2">
-                      <h2 className="text-xl font-semibold">
-                        {hasReceivedResponse
-                          ? 'Processing your request...'
-                          : 'Generating Quiz with AI'}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {hasReceivedResponse
-                          ? 'The AI is working on your quiz. You can continue chatting in the sidebar.'
-                          : 'Initializing AI assistant and loading module materials...'}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <MessageSquare className="h-12 w-12 mx-auto text-primary" />
-                    <div className="space-y-2">
-                      <h2 className="text-xl font-semibold">AI Assistant Ready</h2>
-                      <p className="text-muted-foreground">
-                        Use the chat sidebar to communicate with the AI assistant and refine your
-                        quiz.
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quiz Details Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quiz Generation Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-muted-foreground">Your Request</Label>
-                <p className="mt-1 text-sm">{state.message}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Selected Modules</Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {state.selectedModules.map((module) => (
-                    <span
-                      key={module.id}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary/10 text-primary"
-                    >
-                      {module.title}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              {hasReceivedResponse && (
-                <div className="pt-2 border-t">
-                  <Label className="text-muted-foreground">Conversation</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {messages.length} message{messages.length !== 1 ? 's' : ''} exchanged
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
 
@@ -168,6 +221,10 @@ export default function CreateQuizPage() {
           groupId={groupId!}
           educatorName={`Dr/ ${user.firstName} ${user.lastName}`}
           selectedModules={state.selectedModules}
+          sharedSessionId={sessionId}
+          sharedSendMessage={sendMessage}
+          sharedMessages={messages}
+          sharedIsSendingMessage={isSendingMessage}
         />
       )}
 
