@@ -8,6 +8,7 @@ import { AuthRoute } from './AuthRoute';
 import Announcements from '@/pages/GroupDetails/pages/Announcements';
 import Classwork from '@/pages/GroupDetails/pages/Classwrok';
 import People from '@/pages/GroupDetails/pages/People';
+import ComingSoon from '@/components/ComingSoon';
 
 // Lazy load layouts
 const MainLayout = lazy(() => import('@/layouts/MainLayout'));
@@ -58,7 +59,7 @@ export const routes = (
           <Route path="announcements" element={<Announcements />} />
           <Route path="classwork" element={<Classwork />} />
           <Route path="people" element={<People />} />
-          <Route path="grades" element={<div>Grades content…</div>} />
+          <Route path="grades" element={<ComingSoon />} />
         </Route>
       </Route>
     </Route>

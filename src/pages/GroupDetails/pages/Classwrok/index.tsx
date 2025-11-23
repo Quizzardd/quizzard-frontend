@@ -5,17 +5,21 @@ import { useModulesByGroup } from '@/hooks/useModule';
 import { useParams } from 'react-router';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { useGroupContext } from '../../contexts/GroupContext';
 
 const Classwork = () => {
   const { groupId } = useParams<{ groupId: string }>();
+  const { isTeacher } = useGroupContext();
   const { data: modules, isLoading, error } = useModulesByGroup(groupId!);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <CreateModuleButton groupId={groupId!} />
-        <CreateQuizButton groupId={groupId!} />
-      </div>
+      {isTeacher && (
+        <div className="flex items-center gap-3">
+          <CreateModuleButton groupId={groupId!} />
+          <CreateQuizButton groupId={groupId!} />
+        </div>
+      )}
 
       {/* Modules List */}
       <div className="space-y-4">

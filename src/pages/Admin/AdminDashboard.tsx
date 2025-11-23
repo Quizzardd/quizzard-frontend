@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Users, BookOpen, CreditCard, Activity } from 'lucide-react';
+import { Users, BookOpen, CreditCard, Activity, Home } from 'lucide-react';
 import type { IPlan } from '@/types';
 import {
   LineChart,
@@ -13,8 +13,12 @@ import {
 import { useDailyLoginStats, usePlatformOverview } from '@/hooks/useAdmin';
 import { useAdminGroups } from '@/hooks/useAdmin';
 import { usePlans } from '@/hooks/usePlans';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '@/config/routes';
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const { data: overview, isLoading: overviewLoading } = usePlatformOverview();
   const { data: loginStats, isLoading: statsLoading } = useDailyLoginStats({ limit: 30 });
   const { data: groups } = useAdminGroups();
@@ -65,6 +69,22 @@ export function AdminDashboard() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header with Home Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">Platform overview and statistics</p>
+        </div>
+        <Button
+          onClick={() => navigate(ROUTES.HOME)}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Home className="w-4 h-4" />
+          Go to Home
+        </Button>
+      </div>
+
       {/* Counters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (

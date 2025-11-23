@@ -5,6 +5,7 @@ import AnnouncementCard from './components/AnnouncementCard';
 import CreateAnnouncementButton from './components/CreateAnnouncementButton';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
+import { useGroupContext } from '../../contexts/GroupContext';
 import {
   Pagination,
   PaginationContent,
@@ -56,6 +57,7 @@ const buildPaginationItems = (currentPage: number, pages: number): PaginationEnt
 
 const Announcements = () => {
   const { groupId } = useParams<{ groupId: string }>();
+  const { isTeacher } = useGroupContext();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -92,7 +94,7 @@ const Announcements = () => {
 
   return (
     <div className="space-y-6">
-      <CreateAnnouncementButton groupId={groupId!} />
+      {isTeacher && <CreateAnnouncementButton groupId={groupId!} />}
 
       {/* Search Bar */}
       <div className="relative">

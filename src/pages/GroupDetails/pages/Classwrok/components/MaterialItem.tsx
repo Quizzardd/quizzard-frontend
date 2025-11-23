@@ -1,6 +1,7 @@
 import { FileText, Video, MoreVertical, Trash2, ExternalLink, Link2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { IMaterial } from '@/types/materials';
+import { useGroupContext } from '../../../contexts/GroupContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ interface MaterialItemProps {
 }
 
 export default function MaterialItem({ material, moduleId }: MaterialItemProps) {
+  const { isTeacher } = useGroupContext();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteMaterialMutation = useDeleteMaterial(moduleId);
 
@@ -83,26 +85,28 @@ export default function MaterialItem({ material, moduleId }: MaterialItemProps) 
           {getTypeLabel()}
         </Badge>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleView}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View/Download
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setShowDeleteDialog(true)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isTeacher && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleView}>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View/Download
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}

@@ -8,7 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './providers/AuthProvider.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { Toaster } from 'react-hot-toast';
-import { Toaster as Toast } from 'sonner';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,8 +25,10 @@ const queryClient = new QueryClient({
   },
 });
 
-createRoot(document.getElementById('root')!).render(
-  <ErrorBoundary>
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+const AppWrapper = googleClientId ? (
+  <GoogleOAuthProvider clientId={googleClientId}>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
@@ -38,5 +40,19 @@ createRoot(document.getElementById('root')!).render(
         {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       </AuthProvider>
     </QueryClientProvider>
-  </ErrorBoundary>,
+  </GoogleOAuthProvider>
+) : (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Toaster />
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </AuthProvider>
+  </QueryClientProvider>
 );
+
+createRoot(document.getElementById('root')!).render(<ErrorBoundary>{AppWrapper}</ErrorBoundary>);

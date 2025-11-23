@@ -1,27 +1,57 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit2, Save, X, Loader2, MoreVertical } from 'lucide-react';
+import {
+  Trash2,
+  Edit2,
+  Save,
+  X,
+  Loader2,
+  MoreVertical,
+  Clock,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+} from 'lucide-react';
 import { useUpdateAnnouncement, useDeleteAnnouncement } from '@/hooks/useAnnouncement';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroupContext } from '../../../contexts/GroupContext';
+import { useCheckQuizTaken } from '@/hooks/useQuiz';
+import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import type { IAnnouncement } from '@/types/announcements';
+import type { IQuiz } from '@/types/quizzes';
+import QuizResultModal from './QuizResultModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 interface AnnouncementCardProps {
   announcement: IAnnouncement;
 }
 
 export default function AnnouncementCard({ announcement }: AnnouncementCardProps) {
+  const { isTeacher } = useGroupContext();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(announcement.text);
+  const [showResultModal, setShowResultModal] = useState(false);
   const updateMutation = useUpdateAnnouncement();
   const deleteMutation = useDeleteAnnouncement();
   const { user } = useAuth();
+
+  const quiz = typeof announcement.quiz === 'object' ? announcement.quiz : null;
+  const quizId = typeof announcement.quiz === 'string' ? announcement.quiz : quiz?._id;
+
+  // Check if student has taken the quiz
+  const { data: quizTakenData } = useCheckQuizTaken(user?._id || '', quizId || '');
+  const isTaken = quizTakenData?.data?.isTaken || false;
 
   const author = typeof announcement.author === 'object' ? announcement.author : null;
 
@@ -34,6 +64,8 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
   const isAuthor =
     user?._id ===
     (typeof announcement.author === 'object' ? announcement.author._id : announcement.author);
+
+  const canEdit = isTeacher && isAuthor;
 
   const handleUpdate = async () => {
     if (!editText.trim()) return;
@@ -55,6 +87,34 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
   const cancelEdit = () => {
     setEditText(announcement.text);
     setIsEditing(false);
+  };
+
+  const getQuizStatus = (quiz: IQuiz) => {
+    if (!quiz.startAt || !quiz.endAt) return null;
+
+    const now = new Date();
+    const start = new Date(quiz.startAt);
+    const end = new Date(quiz.endAt);
+
+    if (now < start) {
+      return { type: 'upcoming', message: `Quiz starts ${start.toLocaleString()}`, color: 'blue' };
+    } else if (now > end) {
+      return { type: 'ended', message: 'Quiz deadline has ended', color: 'gray' };
+    } else {
+      return {
+        type: 'active',
+        message: 'Quiz is available now - you can take it!',
+        color: 'green',
+      };
+    }
+  };
+
+  const handleTakeQuiz = () => {
+    if (quizId && user?._id) {
+      // Invalidate the query before navigating to ensure fresh data on return
+      queryClient.invalidateQueries({ queryKey: ['quiz-taken', user._id, quizId] });
+      navigate(`/quizzes/${quizId}/take`);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -93,7 +153,7 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
                 </p>
               </div>
 
-              {isAuthor && !isEditing && (
+              {canEdit && !isEditing && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -148,9 +208,130 @@ export default function AnnouncementCard({ announcement }: AnnouncementCardProps
                 <p className="text-sm whitespace-pre-wrap">{announcement.text}</p>
               )}
             </CardContent>
+
+            {/* Quiz Section */}
+            {quiz && (
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold text-base">{quiz.title}</h4>
+                      {isTaken && (
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Completed
+                        </Badge>
+                      )}
+                    </div>
+
+                    {quiz.description && (
+                      <p className="text-sm text-muted-foreground mb-3">{quiz.description}</p>
+                    )}
+
+                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
+                      {quiz.totalMarks && (
+                        <span className="flex items-center gap-1">
+                          <strong>Total Marks:</strong> {quiz.totalMarks}
+                        </span>
+                      )}
+                      {quiz.durationMinutes && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <strong>Duration:</strong> {quiz.durationMinutes} minutes
+                        </span>
+                      )}
+                    </div>
+
+                    {quiz.startAt && quiz.endAt && (
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <strong>Start:</strong> {new Date(quiz.startAt).toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <strong>End:</strong> {new Date(quiz.endAt).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+
+                    {(() => {
+                      const status = getQuizStatus(quiz);
+                      if (status) {
+                        return (
+                          <div
+                            className={`mt-3 flex items-center gap-2 text-sm ${
+                              status.type === 'active'
+                                ? 'text-green-600'
+                                : status.type === 'ended'
+                                  ? 'text-gray-500'
+                                  : 'text-blue-600'
+                            }`}
+                          >
+                            <AlertCircle className="h-4 w-4" />
+                            <span className="font-medium">{status.message}</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+
+                  {!isTeacher && (
+                    <div className="flex flex-col gap-2">
+                      {(() => {
+                        const status = getQuizStatus(quiz);
+                        const isActive = status?.type === 'active';
+                        const isEnded = status?.type === 'ended';
+
+                        if (isTaken) {
+                          return (
+                            <Button
+                              onClick={() => setShowResultModal(true)}
+                              size="sm"
+                              variant="outline"
+                              className="border-green-500 text-green-700 hover:bg-green-50"
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              View Results
+                            </Button>
+                          );
+                        }
+
+                        return (
+                          <Button
+                            onClick={handleTakeQuiz}
+                            disabled={!isActive || isEnded}
+                            size="sm"
+                            className={
+                              isEnded ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : ''
+                            }
+                          >
+                            {isEnded ? 'Quiz Ended' : 'Take Quiz'}
+                          </Button>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Quiz Result Modal */}
+      {quiz && (
+        <QuizResultModal
+          quizId={quiz._id}
+          quizTitle={quiz.title}
+          open={showResultModal}
+          onOpenChange={setShowResultModal}
+        />
+      )}
     </Card>
   );
 }

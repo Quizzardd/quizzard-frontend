@@ -8,6 +8,7 @@ import type { IRegisterPayload } from '@/types/registerPayload';
 import { AUTH_ACTIONS } from '@/constants/authActions';
 import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '@/lib/apiError';
+import { useQueryClient } from '@tanstack/react-query';
 
 type AuthState = {
   token: string | null;
@@ -63,6 +64,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -110,9 +112,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       toast.success('Logged in successfully');
 
-      return { success: true };
+      return { success: true, user: user.data };
     } catch (error) {
       const message = getApiErrorMessage(error, 'Login failed');
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: { error: message },
+      });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
+  const loginWithGoogle = async (token: string) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+      const { accessToken, user, isNewUser } = await authService.loginWithGoogle(token);
+
+      console.log('Google login response:', { accessToken, user, isNewUser });
+
+      if (!accessToken) {
+        throw new Error('No access token received from server');
+      }
+
+      setAccessToken(accessToken);
+      if (user.role) {
+        sessionStorage.setItem('userRole', user.role);
+      }
+
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { token: accessToken, user },
+      });
+
+      if (isNewUser) {
+        toast.success('Welcome! Your account has been created.');
+      } else {
+        toast.success('Logged in successfully with Google');
+      }
+
+      return { success: true, user };
+    } catch (error) {
+      console.error('Google login error:', error);
+      const message = getApiErrorMessage(error, 'Google login failed');
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
         payload: { error: message },
@@ -148,6 +190,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await authService.logout();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
       clearAuth();
+      queryClient.clear(); // Clear all React Query cache
       toast.success('Logged out successfully');
     } catch (error) {
       const message = getApiErrorMessage(error, 'Logout failed');
@@ -155,6 +198,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
       clearAuth();
+      queryClient.clear(); // Clear all React Query cache
     }
   };
 
@@ -165,6 +209,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading: state.isLoading,
     error: state.error,
     login,
+    loginWithGoogle,
     logout,
     register,
   };

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 
 const loginSchema = z.object({
   email: z.email('Please enter a valid email'),
@@ -19,6 +20,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router';
 import { ROUTES } from '@/config/routes';
+import toast from 'react-hot-toast';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'form'>) {
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
     },
   });
 
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const {
     register,
@@ -48,14 +50,48 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
         password: values.password,
       });
 
-      if (result.success) {
-        navigate(ROUTES.HOME);
+      if (result.success && result.user) {
+        // Navigate to admin dashboard if user is admin, otherwise to home
+        if (result.user.role === 'admin') {
+          navigate(ROUTES.ADMIN);
+        } else {
+          navigate(ROUTES.HOME);
+        }
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      setLoading(true);
+      // Use the credential (id_token) from Google
+      if (!credentialResponse.credential) {
+        toast.error('Google login failed - no credential received');
+        return;
+      }
+      const result = await loginWithGoogle(credentialResponse.credential);
+      if (result.success && result.user) {
+        // Navigate to admin dashboard if user is admin, otherwise to home
+        if (result.user.role === 'admin') {
+          navigate(ROUTES.ADMIN);
+        } else {
+          navigate(ROUTES.HOME);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Google login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error('Google login failed');
   };
 
   return (
@@ -93,26 +129,22 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'form'>)
           {loading || isSubmitting ? 'Logging in...' : 'Login'}
         </Button>
 
-        <div className="text-center text-sm text-muted-foreground">Or continue with</div>
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+          <>
+            <div className="text-center text-sm text-muted-foreground">Or continue with</div>
 
-        <Button variant="outline" type="button" className="flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            className="size-4 mr-2"
-            fill="currentColor"
-          >
-            <path
-              d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 
-            11.385v-8.065h-2.47v-3.32h2.47v-2.53c0-2.44 1.45-3.78 
-            3.67-3.78 1.06 0 2.17.188 
-            2.17.188v2.39h-1.22c-1.2 0-1.57.744-1.57 
-            1.506v1.826h2.67l-.427 3.32h-2.243V23.68C20.565 
-            22.093 24 17.595 24 12.297 24 5.67 18.627.297 12 .297z"
-            />
-          </svg>
-          Login with GitHub
-        </Button>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                text="signin_with"
+                width="100%"
+              />
+            </div>
+          </>
+        )}
       </FieldGroup>
     </form>
   );

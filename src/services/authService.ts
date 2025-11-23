@@ -35,4 +35,14 @@ export const authService = {
     const res = await apiClient.post('/users/refresh-token');
     return res.data.accessToken;
   },
+
+  loginWithGoogle: async (token: string) => {
+    const res = await apiClient.post('/users/google', { token });
+    console.log('Raw Google login response:', res.data);
+    return {
+      accessToken: res.data.accessToken, // Changed from res.data.token to res.data.accessToken
+      user: res.data.user,
+      isNewUser: res.data.isNewUser,
+    };
+  },
 };

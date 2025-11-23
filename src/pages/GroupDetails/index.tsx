@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import { useGroupById } from '@/hooks/UseGroup';
 import GroupLayout from './layout/GroupLayout';
+import { GroupProvider } from './contexts/GroupContext';
 
 const GroupDetails = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -18,6 +19,10 @@ const GroupDetails = () => {
   }
 
   const { group, role } = groupData;
+  const isTeacher = role === 'teacher';
+  const ownerName = group.owner
+    ? `${group.owner.firstName} ${group.owner.lastName}`.trim()
+    : 'Unknown';
 
   const tabs = [
     {
@@ -51,7 +56,7 @@ const GroupDetails = () => {
       />
 
       <div className="absolute bottom-10 left-10 text-white flex items-start gap-4 overlay-shadow p-4 rounded-md bg-black/40">
-        <Button variant="secondary" className="mb-2" onClick={() => navigate(-1)}>
+        <Button variant="secondary" className="mb-2" onClick={() => navigate('/')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="space-y-2 col-auto">
@@ -63,16 +68,11 @@ const GroupDetails = () => {
               </span>
             )}
           </div>
-          <p className="text-lg text-white/90">
-            {group.description || 'No description has been added for this group yet.'}
-          </p>
           <div className="flex flex-wrap gap-3 text-sm text-white/80">
-            {group.ownerName && (
-              <span className="inline-flex items-center gap-1">
-                <span className="font-semibold">Owner:</span> {group.ownerName}
-              </span>
-            )}
-            {group.inviteCode && (
+            <span className="inline-flex items-center gap-1">
+              <span className="font-semibold">Owner:</span> {ownerName}
+            </span>
+            {isTeacher && group.inviteCode && (
               <span className="inline-flex items-center gap-1">
                 <span className="font-semibold">Invite Code:</span>
                 <span className="font-mono tracking-wide">{group.inviteCode}</span>
@@ -84,7 +84,11 @@ const GroupDetails = () => {
     </div>
   );
 
-  return <GroupLayout Header={GroupHeader} tabs={tabs} />;
+  return (
+    <GroupProvider groupId={groupId!} role={role}>
+      <GroupLayout Header={GroupHeader} tabs={tabs} />
+    </GroupProvider>
+  );
 };
 
 export default GroupDetails;
