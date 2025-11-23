@@ -93,7 +93,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     loadUser();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {

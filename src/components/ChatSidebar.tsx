@@ -1,16 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@/hooks/useChat';
 import { Send, Loader2, Bot, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatSidebarProps {
   onClose?: () => void;
   groupId: string;
   educatorName: string;
   selectedModules: Array<{ id: string; title: string }>;
+  sharedSessionId?: string;
+  sharedSendMessage?: (message: string, groupId?: string, educatorName?: string, selectedModules?: Array<{ id: string; title: string }>) => void;
+  sharedMessages?: Array<{ content: string; sender: 'user' | 'bot'; timestamp: Date }>;
+  sharedIsSendingMessage?: boolean;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -18,49 +23,33 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   groupId,
   educatorName,
   selectedModules,
+  sharedSessionId,
+  sharedSendMessage,
+  sharedMessages,
+  sharedIsSendingMessage,
 }) => {
-  const { messages, sendMessage, isSendingMessage } = useChat();
+  // Use shared state from parent if available, otherwise use own useChat instance
+  const fallbackChat = useChat();
+  const messages = sharedMessages || fallbackChat.messages;
+  const sendMessage = sharedSendMessage || fallbackChat.sendMessage;
+  const isSendingMessage = sharedIsSendingMessage !== undefined ? sharedIsSendingMessage : fallbackChat.isSendingMessage;
 
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Debug: Log when messages change
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    console.log('💬 ChatSidebar - Messages updated:', messages.length, messages);
-  }, [messages]);
-
-  // Store the context values in refs to ensure they persist
-  const groupIdRef = useRef(groupId);
-  const educatorNameRef = useRef(educatorName);
-  const selectedModulesRef = useRef(selectedModules);
-
-  // Update refs when props change
-  useEffect(() => {
-    if (groupId) groupIdRef.current = groupId;
-    if (educatorName) educatorNameRef.current = educatorName;
-    if (selectedModules) selectedModulesRef.current = selectedModules;
-  }, [groupId, educatorName, selectedModules]);
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
   }, [messages]);
 
   const handleSendMessage = () => {
     if (!messageInput.trim()) return;
-    sendMessage(
-      messageInput,
-      groupIdRef.current,
-      educatorNameRef.current,
-      selectedModulesRef.current,
-    );
+    console.log('🎯 ChatSidebar sending message, sharedSessionId:', sharedSessionId);
+    sendMessage(messageInput, groupId, educatorName, selectedModules);
     setMessageInput('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enterr' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -73,7 +62,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         top-16
         right-0
         h-[calc(100vh-4rem)] 
-        w-full md:w-85
+        w-full md:w-96
         bg-sidebar
         text-sidebar-foreground
         border-l border-sidebar-border
@@ -149,9 +138,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                           : 'bg-muted',
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap wrap-break-word">
-                        {message.content}
-                      </p>
+                      <div className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                        {message.sender === 'bot' ? (
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        ) : (
+                          <p className="whitespace-pre-wrap break-word">{message.content}</p>
+                        )}
+                      </div>
                       <p className="text-xs mt-1 opacity-70">
                         {new Date(message.timestamp).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -189,19 +182,21 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </div>
 
         <div className="p-4 border-t border-sidebar-border">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Describe what to build next"
+          <div className="flex gap-2 items-end">
+            <Textarea
+              placeholder="Describe what to build next... (Shift+Enter for new line)"
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
               onKeyDown={handleKeyPress}
               disabled={isSendingMessage}
-              className="flex-1 text-sm"
+              className="flex-1 text-sm min-h-[60px] max-h-[200px] resize-none"
+              rows={2}
             />
             <Button
               onClick={handleSendMessage}
               disabled={!messageInput.trim() || isSendingMessage}
               size="icon"
+              className="h-10 w-10 shrink-0"
             >
               {isSendingMessage ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

@@ -8,7 +8,9 @@ import toast from 'react-hot-toast';
 import { useGroupById } from '@/hooks/UseGroup';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
+import { useQuizPreview } from '@/hooks/useQuizPreview';
 import { ChatSidebar } from '@/components/ChatSidebar';
+import { QuizPreview } from '@/components/QuizPreview';
 
 interface CreateQuizPageState {
   message: string;
@@ -23,11 +25,65 @@ export default function CreateQuizPage() {
   const { user } = useAuth();
 
   const state = location.state as CreateQuizPageState | null;
-  const { sendMessage, isSendingMessage, messages } = useChat();
+  const { sendMessage, isSendingMessage, messages, sessionId, latestQuizId, setOnQuizDetected } = useChat();
   const { data: group, isLoading: isLoadingGroup } = useGroupById(groupId!);
+  const { quiz, quizAction, isLoading: isLoadingQuiz, error: quizError, updateQuizId } = useQuizPreview();
+
+  // Debug: Log quiz state changes
+  useEffect(() => {
+    console.log('🎯 Quiz state changed:', { quiz: quiz?._id, quizAction, isLoadingQuiz, error: quizError });
+  }, [quiz, quizAction, isLoadingQuiz, quizError]);
 
   const [isChatOpen, setIsChatOpen] = useState(true);
-  const initializationAttempted = useRef(false);
+  const hasInitialized = useRef(false);
+  const processedQuizTimestampRef = useRef<number>(0);
+
+  // Poll sessionStorage for quiz updates (since useChat instances don't share state)
+  useEffect(() => {
+    console.log('🔔 Setting up sessionStorage polling for quiz detection');
+    
+    const checkForQuiz = () => {
+      try {
+        const storedQuizId = sessionStorage.getItem('latestQuizId');
+        const storedAction = sessionStorage.getItem('latestQuizAction') as 'created' | 'updated' | null;
+        const storedTimestamp = sessionStorage.getItem('latestQuizTimestamp');
+        
+        const timestamp = storedTimestamp ? Number(storedTimestamp) : Date.now();
+        
+        // Only process if we have a new timestamp (different from last processed)
+        if (storedQuizId && storedQuizId.trim() !== '' && timestamp !== processedQuizTimestampRef.current) {
+          const action = storedAction || 'created';
+          console.log('🎯 Quiz detected from sessionStorage:', storedQuizId);
+          console.log('🎬 Action:', action, '| Timestamp:', timestamp);
+          console.log('📝 Processing quiz with action:', action);
+          
+          updateQuizId(storedQuizId, action);
+          processedQuizTimestampRef.current = timestamp;
+          
+          toast.success(action === 'updated' ? 'Quiz updated successfully!' : 'Quiz generated successfully!');
+          
+          // Clear after processing
+          sessionStorage.removeItem('latestQuizId');
+          sessionStorage.removeItem('latestQuizAction');
+          sessionStorage.removeItem('latestQuizTimestamp');
+          console.log('🧹 Cleared quiz data from sessionStorage');
+        }
+      } catch (err) {
+        console.error('Error reading sessionStorage:', err);
+      }
+    };
+
+    // Check immediately
+    checkForQuiz();
+
+    // Then poll every second for updates
+    const interval = setInterval(checkForQuiz, 1000);
+
+    return () => {
+      console.log('🧹 Cleaning up sessionStorage polling');
+      clearInterval(interval);
+    };
+  }, [updateQuizId]);
 
   // Validate state and navigate back if invalid
   useEffect(() => {
@@ -37,29 +93,23 @@ export default function CreateQuizPage() {
     }
   }, [state, groupId, navigate]);
 
-  // Initialize chat session once when ready
+  // Initialize chat session once when ready (AFTER listener is set up)
   useEffect(() => {
-    // Prevent multiple initializations
-    if (initializationAttempted.current) return;
+    // Only initialize once
+    if (hasInitialized.current) return;
 
-    // Wait for all required data
+    // Wait for required data
     if (!state || !user || !group || isLoadingGroup) return;
 
     const educatorName = `Dr/ ${user.firstName} ${user.lastName}`;
 
-    console.log('Initializing quiz generation:', {
-      message: state.message,
-      modules: state.selectedModules,
-      groupId,
-      educatorName,
-    });
+    console.log('🚀 Initializing quiz generation - starting fresh session');
 
-    // Send initial message with reset session
-    sendMessage(state.message, groupId, educatorName, state.selectedModules, {
-      resetSession: true,
-    });
+    // Send initial message with resetSession to start fresh conversation
+    // This prevents old chat messages from showing up
+    sendMessage(state.message, groupId, educatorName, state.selectedModules, { resetSession: true });
 
-    initializationAttempted.current = true;
+    hasInitialized.current = true;
   }, [state, user, group, isLoadingGroup, groupId, sendMessage]);
 
   // Early return if state is invalid
@@ -71,10 +121,10 @@ export default function CreateQuizPage() {
 
   return (
     <div className="min-h-screen flex">
-      <div className={`flex-1 transition-all duration-300 ${isChatOpen ? 'md:mr-80' : ''}`}>
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className={`flex-1 transition-all duration-300 ${isChatOpen ? 'md:mr-96' : ''}`}>
+        <div className="max-w-6xl mx-auto p-4">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <Button
               variant="ghost"
               onClick={() => navigate(`/groups/${groupId}`)}
@@ -89,75 +139,63 @@ export default function CreateQuizPage() {
             </div>
           </div>
 
-          {/* Status Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-12 space-y-4">
-                {isSendingMessage || !hasReceivedResponse ? (
-                  <>
-                    <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          {/* Content */}
+          {quiz ? (
+            /* Quiz Preview - Full Width */
+            <div className="w-full">
+              <QuizPreview
+                quiz={quiz}
+                isLoading={isLoadingQuiz}
+                error={quizError}
+                quizAction={quizAction}
+                groupId={groupId}
+                selectedModules={state.selectedModules}
+              />
+            </div>
+          ) : (
+            /* Loading State - Show only when no quiz */
+            <div className="max-w-2xl mx-auto">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8 space-y-4">
+                    <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
                     <div className="space-y-2">
-                      <h2 className="text-xl font-semibold">
-                        {hasReceivedResponse
-                          ? 'Processing your request...'
-                          : 'Generating Quiz with AI'}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {hasReceivedResponse
-                          ? 'The AI is working on your quiz. You can continue chatting in the sidebar.'
-                          : 'Initializing AI assistant and loading module materials...'}
+                      <h2 className="text-lg font-semibold">Generating Quiz with AI</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Initializing AI assistant and loading module materials...
                       </p>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <MessageSquare className="h-12 w-12 mx-auto text-primary" />
-                    <div className="space-y-2">
-                      <h2 className="text-xl font-semibold">AI Assistant Ready</h2>
-                      <p className="text-muted-foreground">
-                        Use the chat sidebar to communicate with the AI assistant and refine your
-                        quiz.
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Quiz Details Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quiz Generation Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-muted-foreground">Your Request</Label>
-                <p className="mt-1 text-sm">{state.message}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Selected Modules</Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {state.selectedModules.map((module) => (
-                    <span
-                      key={module.id}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary/10 text-primary"
-                    >
-                      {module.title}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              {hasReceivedResponse && (
-                <div className="pt-2 border-t">
-                  <Label className="text-muted-foreground">Conversation</Label>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {messages.length} message{messages.length !== 1 ? 's' : ''} exchanged
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              {/* Quiz Details Card */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Quiz Generation Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-muted-foreground">Your Request</Label>
+                    <p className="mt-1 text-sm">{state.message}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Selected Modules</Label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {state.selectedModules.map((module) => (
+                        <span
+                          key={module.id}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary/10 text-primary"
+                        >
+                          {module.title}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
 
@@ -168,6 +206,10 @@ export default function CreateQuizPage() {
           groupId={groupId!}
           educatorName={`Dr/ ${user.firstName} ${user.lastName}`}
           selectedModules={state.selectedModules}
+          sharedSessionId={sessionId}
+          sharedSendMessage={sendMessage}
+          sharedMessages={messages}
+          sharedIsSendingMessage={isSendingMessage}
         />
       )}
 

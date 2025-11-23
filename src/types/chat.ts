@@ -29,13 +29,21 @@ export interface IMessageContent {
   content: string;
   author: string;
   invocation_id: string;
-  timestamp: string;
+  timestamp: string | number;
+}
+
+export interface IMultipleMessages {
+  multipleMessages: IMessageContent[];
 }
 
 export interface IChatResponse {
-  response: string | IMessageContent;
+  response: string | IMessageContent | IMultipleMessages;
   sessionId: string;
-  timestamp?: string;
+  timestamp?: number;
+  quizId?: string;
+  quizAction?: 'created' | 'updated' | null;
+  quizUpdatedAt?: number | null;
+  isNewSession?: boolean;
 }
 
 export interface IConversationListResponse {

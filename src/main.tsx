@@ -37,7 +37,7 @@ const AppWrapper = googleClientId ? (
             <App />
           </BrowserRouter>
         </ThemeProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       </AuthProvider>
     </QueryClientProvider>
   </GoogleOAuthProvider>
