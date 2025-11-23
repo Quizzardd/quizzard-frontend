@@ -286,6 +286,15 @@ export function useChat() {
     },
 
     onSuccess: (response: IChatResponse) => {
+      // Log the full response for debugging
+      console.log('📨 Full chat response:', {
+        hasQuizId: !!response.quizId,
+        quizId: response.quizId,
+        quizAction: response.quizAction,
+        quizUpdatedAt: response.quizUpdatedAt,
+        sessionId: response.sessionId
+      });
+      
       // Update session ID if new session was created
       if (response.sessionId && response.sessionId !== sessionId) {
         console.log('🆕 New session created:', response.sessionId);
@@ -294,17 +303,22 @@ export function useChat() {
 
       // Check for quizId in response (non-empty string)
       if (response.quizId && response.quizId.trim() !== '') {
+        const action = response.quizAction || 'created';
+        const timestamp = response.quizUpdatedAt || Date.now();
+        
         console.log('🎯 Quiz detected in response:', response.quizId);
-        console.log('🔍 Callback registered?', onQuizDetectedRef.current !== null);
-        console.log('📝 Setting latestQuizId state to:', response.quizId);
+        console.log('🎬 Quiz action:', action);
+        console.log('⏰ Quiz timestamp:', timestamp);
         setLatestQuizId(response.quizId);
         
         // Store in sessionStorage for cross-component access
         try {
           sessionStorage.setItem('latestQuizId', response.quizId);
-          console.log('💾 Stored quizId in sessionStorage');
+          sessionStorage.setItem('latestQuizAction', action);
+          sessionStorage.setItem('latestQuizTimestamp', String(timestamp));
+          console.log('💾 Stored quiz data in sessionStorage');
         } catch (err) {
-          console.error('Failed to store quizId in sessionStorage:', err);
+          console.error('Failed to store quiz data in sessionStorage:', err);
         }
         
         // Trigger callback if registered

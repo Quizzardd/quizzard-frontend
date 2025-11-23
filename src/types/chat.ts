@@ -41,7 +41,8 @@ export interface IChatResponse {
   sessionId: string;
   timestamp?: number;
   quizId?: string;
-  quizAction?: 'created' | 'updated';
+  quizAction?: 'created' | 'updated' | null;
+  quizUpdatedAt?: number | null;
   isNewSession?: boolean;
 }
 

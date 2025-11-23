@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@/hooks/useChat';
 import { Send, Loader2, Bot, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatSidebarProps {
   onClose?: () => void;
@@ -62,7 +63,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         top-16
         right-0
         h-[calc(100vh-4rem)] 
-        w-full md:w-85
+        w-full md:w-96
         bg-sidebar
         text-sidebar-foreground
         border-l border-sidebar-border
@@ -149,9 +150,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                           : 'bg-muted',
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap wrap-break-word">
-                        {message.content}
-                      </p>
+                      <div className="text-sm prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                        {message.sender === 'bot' ? (
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        ) : (
+                          <p className="whitespace-pre-wrap break-word">{message.content}</p>
+                        )}
+                      </div>
                       <p className="text-xs mt-1 opacity-70">
                         {new Date(message.timestamp).toLocaleTimeString([], {
                           hour: '2-digit',
