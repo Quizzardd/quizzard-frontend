@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '@/config/axiosConfig';
 
 interface QuizQuestion {
@@ -24,6 +24,7 @@ interface Quiz {
 }
 
 export function useQuizPreview() {
+  const queryClient = useQueryClient();
   const [quizId, setQuizId] = useState<string | null>(null);
   const [quizAction, setQuizAction] = useState<'created' | 'updated' | null>(null);
 
@@ -54,12 +55,15 @@ export function useQuizPreview() {
     setQuizAction(action);
     console.log('✅ State updated, React Query should fetch now...');
     
-    // If updating existing quiz, trigger refetch
-    if (action === 'updated' && newQuizId === quizId) {
-      console.log('🔄 Same quiz updated, triggering refetch...');
-      refetch();
+    // If updating existing quiz, invalidate cache and refetch
+    if (action === 'updated') {
+      console.log('🔄 Quiz updated, invalidating cache and refetching...');
+      queryClient.invalidateQueries({ queryKey: ['quiz', newQuizId] });
+      setTimeout(() => {
+        refetch();
+      }, 100);
     }
-  }, [quizId, quizAction, refetch]);
+  }, [quizId, quizAction, refetch, queryClient]);
 
   // Clear quiz
   const clearQuiz = useCallback(() => {
