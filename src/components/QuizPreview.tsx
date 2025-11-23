@@ -92,9 +92,10 @@ export const QuizPreview: React.FC<QuizPreviewProps> = ({
 
   // Announce quiz mutation
   const announceQuizMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (updatedTitle?: string) => {
+      const titleToUse = updatedTitle || quiz?.title;
       const response = await axios.post('/announcements', {
-        text: `New quiz "${quiz?.title}" is now available!`,
+        text: `New quiz "${titleToUse}" is now available!`,
         quiz: quiz?._id,
         group: groupId,
       });
@@ -102,6 +103,10 @@ export const QuizPreview: React.FC<QuizPreviewProps> = ({
     },
     onSuccess: () => {
       toast.success('Quiz announced successfully!');
+      // Redirect to announcements tab with page refresh
+      if (groupId) {
+        window.location.href = `/groups/${groupId}?tab=announcements`;
+      }
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to announce quiz');
@@ -164,8 +169,8 @@ export const QuizPreview: React.FC<QuizPreviewProps> = ({
       
       // First update the quiz
       await updateQuizMutation.mutateAsync(quizData);
-      // Then announce it
-      await announceQuizMutation.mutateAsync();
+      // Then announce it with the updated title
+      await announceQuizMutation.mutateAsync(quizData.title);
     } catch (error) {
       console.error('❌ Update failed:', error);
       // Errors are handled by individual mutations
@@ -343,9 +348,23 @@ export const QuizPreview: React.FC<QuizPreviewProps> = ({
               <>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-xl">{quiz.title}</CardTitle>
-                  <Button onClick={handleEdit} size="sm" variant="ghost">
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => announceQuizMutation.mutate(quiz.title)} 
+                      size="sm" 
+                      variant="default"
+                      disabled={announceQuizMutation.isPending}
+                    >
+                      {announceQuizMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Announce'
+                      )}
+                    </Button>
+                    <Button onClick={handleEdit} size="sm" variant="ghost">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 {quiz.description && (
                   <p className="text-sm text-muted-foreground">{quiz.description}</p>

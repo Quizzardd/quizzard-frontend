@@ -33,7 +33,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const messages = sharedMessages || fallbackChat.messages;
   const sendMessage = sharedSendMessage || fallbackChat.sendMessage;
   const isSendingMessage = sharedIsSendingMessage !== undefined ? sharedIsSendingMessage : fallbackChat.isSendingMessage;
-  const startNewConversation = fallbackChat.startNewConversation;
 
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -79,28 +78,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <Bot className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-bold">AI Assistant</h2>
             </div>
-            <div className="flex items-center gap-2">
+            {onClose && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={startNewConversation}
-                className="h-8"
-                title="Start new conversation"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+                title="Close"
               >
-                New Chat
+                <X className="h-4 w-4" />
               </Button>
-              {onClose && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="h-8 w-8 p-0"
-                  title="Close"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </div>
 

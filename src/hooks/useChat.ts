@@ -330,6 +330,8 @@ export function useChat() {
         }
       } else {
         console.log('ℹ️ No quizId in response (empty or not set)');
+        console.log('🔍 Will check for newly created quizzes via polling...');
+        // MCP agent creates quiz but doesn't send sessionId, so we poll for it
       }
 
       // Clear pending message and start polling
@@ -342,6 +344,13 @@ export function useChat() {
         queryClient.invalidateQueries({
           queryKey: ['chatHistory', targetSessionId, user._id],
         });
+        
+        // Invalidate AI credits to update token count in navbar
+        queryClient.invalidateQueries({
+          queryKey: ['ai-credits-remaining'],
+        });
+        console.log('💰 Invalidated AI credits cache for real-time update');
+        
         setIsPolling(true);
       }
     },
